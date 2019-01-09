@@ -21,7 +21,7 @@
 
             var $advancedContainer = $.tag({
                 _: 'li', 
-                'class': 'advanced', 
+                'class': 'advanced simpleAdvanced', 
                 contents: [
                     { 
                         _: 'a', 
@@ -43,18 +43,52 @@
             });
             var $advancedList = $advancedContainer.find('.advancedProperties');
 
+            var $semanticsContainer = $.tag({
+                _: 'li', 
+                'class': 'advanced semanticsAdvanced', 
+                contents: [
+                    { 
+                        _: 'a', 
+                        'class': 'toggleSemantics', 
+                        href: '#semantics', 
+                        contents: [
+                            { 
+                                _: 'div', 
+                                'class': 'icon' 
+                            },
+                            'Semantic Metrics'
+                        ] 
+                    },
+                    { 
+                        _: 'ul', 
+                        'class': 'semanticProperties toggleContainer' 
+                    }
+                ]
+            });
+            var $semanticsList = $semanticsContainer.find('.semanticProperties');
+
             // add our hero's properties
             _.each(properties, function(property, name)
             {
                 if (name === 'metadata') return;
 
+                //Find the correct element to append the property to
+                var appendToElement;
+                if(property.advanced === true)
+                    appendToElement = $advancedList;
+                else if(property.semantics === true)
+                    appendToElement = $semanticsList;
+                else
+                    appendToElement = $propertyList;
                 $('<li class="propertyItem"/>')
                     .propertyEditor(property, name, $this)
-                    .appendTo((property.advanced === true) ? $advancedList : $propertyList);
+                    .appendTo(appendToElement);
             });
 
             // drop in advanced
             $propertyList.append($advancedContainer);
+            // drop in semantics
+            $propertyList.append($semanticsContainer);
     };
     kor.events.listen({ verb: 'control-selected', callback: function(event)
     {
@@ -82,6 +116,11 @@
         {
             event.preventDefault();
             $propertyList.toggleClass('showAdvanced');
+        });
+
+        $propertyList.on('click', '.toggleSemantics', function(event){
+            event.preventDefault();
+            $propertyList.toggleClass('showSemantics');
         });
     });
 
@@ -894,16 +933,19 @@
             type: "text",
             description: "Information about the " + metric + " is helpful for the RDF-Export of ODK Aggregate",
             value: "",
+            semantics: true,
             summary: false
         };
         $.fn.odkControl.defaultProperties["__semantics__" + metric] = newProperty;
-        return newProperty;
+        //Deep clone before returning, we don't want a reference to the default property object flying around
+        var clone = $.extend(true, {}, newProperty);
+        return clone;
     }
 
     var addPropertyToActiveControls = function(metricProperty){
         //Add the property to all controls in the workspace
         $('.workspace .control').each(function(){
-            //Deep clone the property, then attach it to the control
+            //Deep clone the property, we don't want changes to one of the controls reflecting on the others 
             var clone = $.extend(true, {}, metricProperty);
             $(this).data('odkControl-properties')["__semantics__" + metricProperty.name] = clone;
         })

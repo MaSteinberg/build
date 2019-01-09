@@ -1102,6 +1102,12 @@ body > .control.last .controlFlowArrow,
     font-size: 1.4em;
     letter-spacing: -1px;
 }
+.propertiesPane .propertyList li.advanced a.toggleSemantics
+{
+    color: #444;
+    font-size: 1.4em;
+    letter-spacing: -1px;
+}
 .propertiesPane .advancedProperties
 {
     max-height: 0;
@@ -1113,11 +1119,27 @@ body > .control.last .controlFlowArrow,
 {
     padding-left: 1em;
 }
+.propertiesPane .semanticProperties
+{
+    max-height: 0;
+    overflow: hidden;
+    padding-top: 1em;
+    transition: 0.4s max-height;
+}
+.propertiesPane .semanticProperties .propertyItem
+{
+    padding-left: 1em;
+}
 .propertiesPane .propertyList input[type="text"]
 {
     width: calc(100% - 1em);
 }
 .propertiesPane .propertyList.showAdvanced .advancedProperties
+{
+    max-height: 20em
+}
+
+.propertiesPane .propertyList.showSemantics .semanticProperties
 {
     max-height: 20em
 }
@@ -1175,7 +1197,11 @@ body > .control.last .controlFlowArrow,
 {
     content: '\e901';
 }
-.propertiesPane .propertyList.showAdvanced li.advanced .icon:before
+.propertiesPane .propertyList.showAdvanced li.advanced.simpleAdvanced .icon:before
+{
+    content: '\e900';
+}
+.propertiesPane .propertyList.showSemantics li.advanced.semanticsAdvanced .icon:before
 {
     content: '\e900';
 }
