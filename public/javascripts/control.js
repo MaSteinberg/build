@@ -20,12 +20,25 @@
             $propertyList.empty();
 
             var $advancedContainer = $.tag({
-                _: 'li', 'class': 'advanced', contents: [
-                    { _: 'a', 'class': 'toggle', href: '#advanced', contents: [
-                        { _: 'div', 'class': 'icon' },
-                        'Advanced'
-                    ] },
-                    { _: 'ul', 'class': 'advancedProperties toggleContainer' }
+                _: 'li', 
+                'class': 'advanced', 
+                contents: [
+                    { 
+                        _: 'a', 
+                        'class': 'toggle', 
+                        href: '#advanced', 
+                        contents: [
+                            { 
+                                _: 'div', 
+                                'class': 'icon' 
+                            },
+                            'Advanced'
+                        ] 
+                    },
+                    { 
+                        _: 'ul', 
+                        'class': 'advancedProperties toggleContainer' 
+                    }
                 ]
             });
             var $advancedList = $advancedContainer.find('.advancedProperties');
@@ -861,7 +874,6 @@
         }
     };
 
-
     controlNS.upgrade = {
         2: function(form) {
             var processControl = function(control)
@@ -875,5 +887,53 @@
             _.each(form.controls, processControl);
         }
     };
+
+    var addMetricAsDefaultProperty = function(metric){
+        var newProperty = {
+            name: metric,
+            type: "text",
+            description: "Information about the " + metric + " is helpful for the RDF-Export of ODK Aggregate",
+            value: "",
+            summary: false
+        };
+        $.fn.odkControl.defaultProperties["__semantics__" + metric] = newProperty;
+        return newProperty;
+    }
+
+    var addPropertyToActiveControls = function(metricProperty){
+        //Add the property to all controls in the workspace
+        $('.workspace .control').each(function(){
+            //Deep clone the property, then attach it to the control
+            var clone = $.extend(true, {}, metricProperty);
+            $(this).data('odkControl-properties')["__semantics__" + metricProperty.name] = clone;
+        })
+    }
+
+    var currentMetrics = [];
+
+    //Accessor for the current metrics
+    $.fn.odkControl.currentSemanticMetrics = function() {return currentMetrics; }
+
+    //Takes a list of metrics and adds them to the current metrics
+    //Since the DOM (after the constructor-function) doesn't use the
+    //currentMetrics we have to add the properties as data-attributes manually
+    $.fn.odkControl.addSemanticMetric = function(list){
+        _.each(list, function(metric){
+            if(!currentMetrics.includes(metric)){
+                currentMetrics.push(metric);
+                var newProperty = addMetricAsDefaultProperty(metric);
+                addPropertyToActiveControls(newProperty);
+            }
+        });
+        //Deselect all selected controls so the properties editor is empty and 
+        //will refresh with the next selection
+        $('.control.selected').each(deselect);
+    }
+
+    //Add the default metrics to the default properties of all controls
+    //TODO ALL controls? Configure it?
+    _.each(currentMetrics, function(metric){
+        addMetricAsDefaultProperty(metric);
+    });
 
 })(jQuery);

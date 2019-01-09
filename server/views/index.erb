@@ -398,6 +398,43 @@
       </div>
     </div>
 
+    <div class="modal rdfDialog">
+        <h3>Warning</h3>
+        <div class="modalContents">
+            <div class="rdfMissingMetricsContainer">
+              <p>
+                The RDF export on this server uses some metrics that your ODK Build is currently not providing:
+              </p>
+              <ul class="missingMetricsList">
+              </ul>
+              <p>
+                Do you want to add all of them now and review your survey?
+              </p>
+              <div class="modalButtonContainer">
+                <a class="modalButton addMissingMetricsButton">Yes, add all</a>
+              </div>
+            </div>
+            <div class="rdfMissingRequirementsContainer">
+                <p>
+                    The following information is <b>required</b> by one or more templates and is currently missing:
+                </p>
+                <ul class="rdfMissingRequirementsList">
+                </ul>
+            </div>
+            <div class="rdfMissingOptionalsContainer">
+                <p>
+                    The following information is <b>optional</b> for one or more templates and is currently missing:
+                </p>
+                <ul class="rdfMissingOptionalsList">
+                </ul>
+            </div>
+            <div class="modalButtonContainer">
+              <a class="modalButton resumeUploadButton">Upload anyway</a>
+              <a class="modalButton cancelUploadButton jqmClose" href="#close">Cancel upload</a>
+            </div>
+        </div>
+    </div>
+
     <div class="modal narrowModal titlelessModal askDialog">
       <div class="modalContents">
         <p></p>
