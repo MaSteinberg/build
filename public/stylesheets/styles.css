@@ -169,6 +169,11 @@ body
     top: 3em;
 }
 
+.rdfDialog{
+    max-height: 60%;
+    overflow-y: auto;
+}
+
 .rdfDialog ul
 {
     list-style-type: square;
