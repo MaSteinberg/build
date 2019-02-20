@@ -230,13 +230,13 @@ var dataNS = odkmaker.namespace.load('odkmaker.data');
             $form.submit();
         });
 
-        $('.rdfDialog .addMissingMetricsButton').click(function (event) {
-            //Grab the array of missing metrics that's attached to the button
+        $('.rdfDialog .addMissingSemPropsButton').click(function (event) {
+            //Grab the array of missing properties that's attached to the button
             var missing = $(this).data("missing");
-            //Remove the array so the metrics can't be added multiple times
+            //Remove the array so the properties can't be added multiple times
             $(this).data("missing", []);
-            //Add the list to the current metrics
-            $.fn.odkControl.addSemanticMetric(missing);
+            //Add the list to the current semantic properties
+            $.fn.odkControl.addSemanticProperty(missing);
             //Close the dialogs
             $('.rdfDialog').jqmHide();
             $('.aggregateDialog').jqmHide();
@@ -256,182 +256,190 @@ var dataNS = odkmaker.namespace.load('odkmaker.data');
 
             $('.aggregateDialog .rdfWarningMessage').hide();
 
-            //Reset lists of missing metrics
+            //Reset lists of missing properties
             $('.rdfDialog ul').empty();
 
-            //TODO Debug only
             var rdfTemplateConfig = {
-                availableMetrics: {
-                    0: "Creator",
-                    1: "Unit",
-                    2: "Characteristic"
+                "availableProperties": {
+                    "Creator": {
+                        "Endpoint": null,
+                        "Query": null
+                    },
+                    "Unit": {
+                        "Endpoint": "http://192.168.0.8:7200/repositories/om",
+                        "Query": "PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>\nPREFIX : <http://ecoinformatics.org/oboe/oboe.1.2/oboe.owl#>\nPREFIX om: <http://www.ontology-of-units-of-measure.org/resource/om-2/>\nPREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>\n\nSELECT DISTINCT ?uri ?displayName\nWHERE {\n    ?uri rdf:type om:Unit .\n    OPTIONAL{\n        ?uri rdfs:label ?displayName .\n     \tFILTER (lang(?displayName) = 'en')\n    }\n}"
+                    },
+                    "Characteristic": {
+                        "Endpoint": "http://192.168.0.8:7200/repositories/oboe",
+                        "Query": "PREFIX oboe-core: <http://ecoinformatics.org/oboe/oboe.1.2/oboe-core.owl#>\nPREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>\nPREFIX : <http://ecoinformatics.org/oboe/oboe.1.2/oboe.owl#>\nSELECT DISTINCT ?uri ?displayName\nWHERE {\n\t?uri rdfs:subClassOf oboe-core:Characteristic .\n    FILTER NOT EXISTS {\n        ?sub rdfs:subClassOf ?uri .\n    }\n    OPTIONAL{\n        ?uri rdfs:label ?displayName\n    }\n}"
+                    }
                 },
-                templates: {
-                    oboe: {
-                        optionalMetrics: {
-                            0: "Creator",
-                        },
-                        requiredMetrics: {
-                            0: "Characteristic",
-                            1: "Unit"
+                "templates": {
+                    "oboe": {
+                        "displayName": "Extensible Observation Ontology",
+                        "templateProperties": {
+                            "optionalProperties": [
+                                "Creator"
+                            ],
+                            "requiredProperties": [
+                                "Characteristic",
+                                "Unit"
+                            ]
                         }
                     }
                 }
             };
+            
 
-            //Get the RDF-Export metrics from the specified Aggregate server
+            //Get the RDF-Export's semantic properties from the specified Aggregate server
             /*$.ajax({
                 type: 'GET',
                 url: protocol + '://' + target + '/rdfTemplateConfig',
                 dataType: 'json',
                 success: function(rdfTemplateConfig){*/
             var displayingWarning = false;
-            //Compare the received metrics with our current metrics, if we're 
+            //Compare the received properties with our current properties, if we're 
             //missing at least one of them give the user the option 
             //to add them before resuming with the upload
             var missingList = [];
-            var current = $.fn.odkControl.currentSemanticMetrics();
-            for (var property in rdfTemplateConfig.availableMetrics) {
-                if (rdfTemplateConfig.availableMetrics.hasOwnProperty(property)) {
-                    var metricName = rdfTemplateConfig.availableMetrics[property];
-                    if (!current.includes(metricName))
-                        missingList.push(metricName);
+            var current = $.fn.odkControl.currentSemanticProperties();
+            for (var property in rdfTemplateConfig.availableProperties) {
+                if (rdfTemplateConfig.availableProperties.hasOwnProperty(property)) {
+                    if (!current.includes(property))
+                        missingList.push(property);
                 }
             }
             if (missingList.length > 0) {
                 displayingWarning = true;
 
-                //Display warning message with list of missing metrics
-                var $missingMetricsList = $('.rdfDialog .rdfMissingMetricsContainer ul');
-                $('.rdfDialog .rdfMissingMetricsContainer .addMissingMetricsButton').data("missing", missingList);
-                $missingMetricsList.empty();
+                //Display warning message with list of missing properties
+                var $missingPropsList = $('.rdfDialog .rdfMissingSemPropsContainer ul');
+                $('.rdfDialog .rdfMissingSemPropsContainer .addMissingSemPropsButton').data("missing", missingList);
+                $missingPropsList.empty();
                 _.each(missingList, function (missing) {
-                    $missingMetricsList.append("<li>" + missing + "</li>");
+                    $missingPropsList.append("<li>" + missing + "</li>");
                 });                
-                $('.rdfDialog .rdfMissingMetricsContainer').show();
+                $('.rdfDialog .rdfMissingSemPropsContainer').show();
             } else{
-                $('.rdfMissingMetricsContainer').hide();
+                $('.rdfMissingSemPropsContainer').hide();
             }
 
-            //Check which metrics are missing for which template
-            var _missingRequiredMetrics = {};
-            var missingMetrics = {};
-            var _missingOptionalMetrics = {};
+            //Check which semantic properties are missing for which template
+            var _missingRequiredProps = {};
+            var missingProps = {};
+            var _missingOptionalProps = {};
             var $activeControls = $('.workspace .control');
             for(var templateName in rdfTemplateConfig.templates){
-                _missingRequiredMetrics[templateName] = [];
-                missingMetrics[templateName] = {
-                    required: {},
-                    optional: {}
-                };
-                _missingOptionalMetrics[templateName] = [];
-                //Check if each control has the metrics attached as a property and has it filled
-                $activeControls.each(function(){
-                    $control = $(this);
-                    
-                    //Check if this template has any required metrics
-                    if(rdfTemplateConfig.templates[templateName].requiredMetrics != null){
-                        //Loop through all required metrics
-                        for(var metricNumber in rdfTemplateConfig.templates[templateName].requiredMetrics){
-                            var metricName = rdfTemplateConfig.templates[templateName].requiredMetrics[metricNumber];
-                            if(!missingMetrics[templateName].required.hasOwnProperty(metricName)){
-                                missingMetrics[templateName].required[metricName] = [];
-                            }
-                            
-                            if(!$control.data('odkControl-properties').hasOwnProperty('__semantics__'+metricName)){
-                                //Metric isn't even attached as a property
-                                missingMetrics[templateName].required[metricName].push($control.data('odkControl-properties').name.value);
-                                _missingRequiredMetrics[templateName].push({
-                                    control: $control.data('odkControl-properties').name.value,
-                                    metric: metricName
-                                });
+                if(rdfTemplateConfig.templates.hasOwnProperty(templateName)){
+                    _missingRequiredProps[templateName] = [];
+                    missingProps[templateName] = {
+                        required: {},
+                        optional: {}
+                    };
+                    _missingOptionalProps[templateName] = [];
+                    //Check if each control has the semantic properties attached as a property and has it filled
+                    $activeControls.each(function(){
+                        $control = $(this);
+                        
+                        //Check if this template has any required properties
+                        if(rdfTemplateConfig.templates[templateName].requiredProperties != null){
+                            //Loop through all required properties
+                            for(var propName in rdfTemplateConfig.templates[templateName].requiredProperties){
+                                if(!missingProps[templateName].required.hasOwnProperty(propName)){
+                                    missingProps[templateName].required[propName] = [];
+                                }
 
-                                displayingWarning = true;
-                            } else {
-                                //Metric is attached as a property so we have to check if a value has been entered
-                                var value = $control.data('odkControl-properties')['__semantics__'+metricName].value;
-                                if(value == null || value.trim().length === 0){
-                                    //No value has been entered
-                                    missingMetrics[templateName].required[metricName].push($control.data('odkControl-properties').name.value);
-                                    _missingRequiredMetrics[templateName].push({
+                                if(!$control.data('odkControl-properties').hasOwnProperty('__semantics__'+propName)){
+                                    //Semantic property isn't even attached yet
+                                    missingProps[templateName].required[propName].push($control.data('odkControl-properties').name.value);
+                                    _missingRequiredProps[templateName].push({
                                         control: $control.data('odkControl-properties').name.value,
-                                        metric: metricName
+                                        prop: propName
                                     });
-
                                     displayingWarning = true;
+                                } else {
+                                    //Semantic property is attached so we have to check if a value has been entered
+                                    var value = $control.data('odkControl-properties')['__semantics__'+propName].value;
+                                    if(value == null || value.trim().length === 0){
+                                        //No value has been entered
+                                        missingProps[templateName].required[propName].push($control.data('odkControl-properties').name.value);
+                                        _missingRequiredProps[templateName].push({
+                                            control: $control.data('odkControl-properties').name.value,
+                                            prop: propName
+                                        });
+                                        displayingWarning = true;
+                                    }
                                 }
                             }
                         }
-                    }
-                    //Check if this template has any optional metrics
-                    if(rdfTemplateConfig.templates[templateName].optionalMetrics != null){
-                        //Loop through all optional metrics
-                        for(var metricNumber in rdfTemplateConfig.templates[templateName].optionalMetrics){
-                            var metricName = rdfTemplateConfig.templates[templateName].optionalMetrics[metricNumber];
-                            if(!missingMetrics[templateName].optional.hasOwnProperty(metricName)){
-                                missingMetrics[templateName].optional[metricName] = [];
-                            }
 
-                            if(!$control.data('odkControl-properties').hasOwnProperty('__semantics__'+metricName)){
-                                //Metric isn't even attached as a property
-                                missingMetrics[templateName].optional[metricName].push($control.data('odkControl-properties').name.value);
-                                _missingOptionalMetrics[templateName].push({
-                                    control: $control.data('odkControl-properties').name.value,
-                                    metric: metricName
-                                });
+                        //Check if this template has any optional properties
+                        if(rdfTemplateConfig.templates[templateName].optionalProperties != null){
+                            //Loop through all optional properties
+                            for(var propName in rdfTemplateConfig.templates[templateName].optionalProperties){
+                                if(!missingProps[templateName].optional.hasOwnProperty(propName)){
+                                    missingProps[templateName].optional[propName] = [];
+                                }
 
-                                displayingWarning = true;
-                            } else {
-                                //Metric is attached as a property so we have to check if a value has been entered
-                                var value = $control.data('odkControl-properties')['__semantics__'+metricName].value;
-                                if(value == null || value.trim().length === 0){
-                                    //No value has been entered
-                                    missingMetrics[templateName].optional[metricName].push($control.data('odkControl-properties').name.value);
-                                    _missingOptionalMetrics[templateName].push({
+                                if(!$control.data('odkControl-properties').hasOwnProperty('__semantics__'+propName)){
+                                    //Property isn't even attached
+                                    missingProps[templateName].optional[propName].push($control.data('odkControl-properties').name.value);
+                                    _missingOptionalProps[templateName].push({
                                         control: $control.data('odkControl-properties').name.value,
-                                        metric: metricName
+                                        prop: propName
                                     });
-
                                     displayingWarning = true;
+                                } else {
+                                    //Property is attached so we have to check if a value has been entered
+                                    var value = $control.data('odkControl-properties')['__semantics__'+propName].value;
+                                    if(value == null || value.trim().length === 0){
+                                        //No value has been entered
+                                        missingProps[templateName].optional[propName].push($control.data('odkControl-properties').name.value);
+                                        _missingOptionalProps[templateName].push({
+                                            control: $control.data('odkControl-properties').name.value,
+                                            prop: propName
+                                        });
+                                        displayingWarning = true;
+                                    }
                                 }
                             }
                         }
-                    }
-                });
+                    });
+                }
             }
 
-            //Display the lists of missing metrics
-            for(var templateName in missingMetrics){
-                var missingRequired = missingMetrics[templateName].required;
-                var missingOptional = missingMetrics[templateName].optional;
+            //Display the lists of missing semantic properties
+            for(var templateName in missingProps){
+                var missingRequired = missingProps[templateName].required;
+                var missingOptional = missingProps[templateName].optional;
 
                 var $missingRequirementsList = $('.rdfMissingRequirementsList');
-                for(var metricName in missingRequired){
-                    if(missingRequired[metricName].length > 0){
-                        //TODO Probably inefficient
-                        var controlListString = missingRequired[metricName].map(function(controlName){
+                for(var propName in missingRequired){
+                    if(missingRequired[propName].length > 0){
+                        //TODO Inefficient?
+                        var controlListString = missingRequired[propName].map(function(controlName){
                             return '<li>' + controlName + '</li>';
                         }).join('');
                         $missingRequirementsList.append('<li>'+ 
                             '<b>' + templateName + '</b>' +
                             ' requires ' + 
-                            '<b>' + metricName + '</b>' + 
+                            '<b>' + propName + '</b>' + 
                             ' which is currently missing for ' + 
                             '<ul>' + controlListString + '</ul>' +
                             '</li>');
                     }
                 }
                 var $missingOptionalsList = $('.rdfMissingOptionalsList');
-                for(var metricName in missingOptional){
-                    if(missingOptional[metricName].length > 0){
+                for(var propName in missingOptional){
+                    if(missingOptional[propName].length > 0){
                         //TODO Probably inefficient
-                        var controlListString = missingOptional[metricName].map(function(controlName){
+                        var controlListString = missingOptional[propName].map(function(controlName){
                             return '<li>' + controlName + '</li>';
                         }).join('');
                         $missingOptionalsList.append('<li>'+ 
                             '<b>' + templateName + '</b>' +
                             ' can use ' + 
-                            '<b>' + metricName + '</b>' + 
+                            '<b>' + propName + '</b>' + 
                             ' which is currently missing for ' + 
                             '<ul>' + controlListString + '</ul>' +
                             '</li>');
@@ -445,14 +453,6 @@ var dataNS = odkmaker.namespace.load('odkmaker.data');
                 //Everything is okay, resume with the actual upload  
                 triggerFormUpload();
             }
-                
-            /*console.log("_missingRequiredMetrics");
-            console.log(_missingRequiredMetrics);
-            console.log("_missingOptionalMetrics");
-            console.log(_missingOptionalMetrics);*/
-
-            //Check if all optional metrics have been filled out
-
             
             /*},
             error: function(jqXHR, textStatus, errorThrown ){
