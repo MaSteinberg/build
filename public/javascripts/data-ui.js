@@ -329,6 +329,7 @@ var dataNS = odkmaker.namespace.load('odkmaker.data');
             var missingProps = {};
             var _missingOptionalProps = {};
             var $activeControls = $('.workspace .control');
+            /*For each template..*/
             for(var templateName in rdfTemplateConfig.templates){
                 if(rdfTemplateConfig.templates.hasOwnProperty(templateName)){
                     _missingRequiredProps[templateName] = [];
@@ -337,74 +338,79 @@ var dataNS = odkmaker.namespace.load('odkmaker.data');
                         optional: {}
                     };
                     _missingOptionalProps[templateName] = [];
-                    //Check if each control has the semantic properties attached as a property and has it filled
-                    $activeControls.each(function(){
-                        $control = $(this);
-                        
-                        //Check if this template has any required properties
-                        if(rdfTemplateConfig.templates[templateName].requiredProperties != null){
-                            //Loop through all required properties
-                            for(var propName in rdfTemplateConfig.templates[templateName].requiredProperties){
-                                if(!missingProps[templateName].required.hasOwnProperty(propName)){
-                                    missingProps[templateName].required[propName] = [];
-                                }
+                    var templateProperties = rdfTemplateConfig.templates[templateName].templateProperties;
+                    /*If the template has some required/optional properties*/
+                    if(templateProperties){
+                        /*For each control...*/
+                        $activeControls.each(function(){
+                            $control = $(this);                        
+                            /*Check if this template has any required properties*/
+                            if(templateProperties.requiredProperties){
+                                /*For each required property...*/
+                                for(var i = 0; i < templateProperties.requiredProperties.length; i++){
+                                    var propName = templateProperties.requiredProperties[i];
+                                    if(!missingProps[templateName].required.hasOwnProperty(propName)){
+                                        missingProps[templateName].required[propName] = [];
+                                    }
 
-                                if(!$control.data('odkControl-properties').hasOwnProperty('__semantics__'+propName)){
-                                    //Semantic property isn't even attached yet
-                                    missingProps[templateName].required[propName].push($control.data('odkControl-properties').name.value);
-                                    _missingRequiredProps[templateName].push({
-                                        control: $control.data('odkControl-properties').name.value,
-                                        prop: propName
-                                    });
-                                    displayingWarning = true;
-                                } else {
-                                    //Semantic property is attached so we have to check if a value has been entered
-                                    var value = $control.data('odkControl-properties')['__semantics__'+propName].value;
-                                    if(value == null || value.trim().length === 0){
-                                        //No value has been entered
+                                    if(!$control.data('odkControl-properties').hasOwnProperty('__semantics__'+propName)){
+                                        //Semantic property isn't even attached yet
                                         missingProps[templateName].required[propName].push($control.data('odkControl-properties').name.value);
                                         _missingRequiredProps[templateName].push({
                                             control: $control.data('odkControl-properties').name.value,
                                             prop: propName
                                         });
                                         displayingWarning = true;
+                                    } else {
+                                        //Semantic property is attached so we have to check if a value has been entered
+                                        var value = $control.data('odkControl-properties')['__semantics__'+propName].value;
+                                        if(value == null || value.trim().length === 0){
+                                            //No value has been entered
+                                            missingProps[templateName].required[propName].push($control.data('odkControl-properties').name.value);
+                                            _missingRequiredProps[templateName].push({
+                                                control: $control.data('odkControl-properties').name.value,
+                                                prop: propName
+                                            });
+                                            displayingWarning = true;
+                                        }
                                     }
                                 }
                             }
-                        }
 
-                        //Check if this template has any optional properties
-                        if(rdfTemplateConfig.templates[templateName].optionalProperties != null){
-                            //Loop through all optional properties
-                            for(var propName in rdfTemplateConfig.templates[templateName].optionalProperties){
-                                if(!missingProps[templateName].optional.hasOwnProperty(propName)){
-                                    missingProps[templateName].optional[propName] = [];
-                                }
+                            /*Check if this template has any optional properties*/
+                            if(templateProperties.optionalProperties){
+                                /*For each optional property...*/
+                                for(var i = 0; i < templateProperties.optionalProperties.length; i++){
+                                    var propName = templateProperties.optionalProperties[i];
+                                    if(!missingProps[templateName].optional.hasOwnProperty(propName)){
+                                        missingProps[templateName].optional[propName] = [];
+                                    }
 
-                                if(!$control.data('odkControl-properties').hasOwnProperty('__semantics__'+propName)){
-                                    //Property isn't even attached
-                                    missingProps[templateName].optional[propName].push($control.data('odkControl-properties').name.value);
-                                    _missingOptionalProps[templateName].push({
-                                        control: $control.data('odkControl-properties').name.value,
-                                        prop: propName
-                                    });
-                                    displayingWarning = true;
-                                } else {
-                                    //Property is attached so we have to check if a value has been entered
-                                    var value = $control.data('odkControl-properties')['__semantics__'+propName].value;
-                                    if(value == null || value.trim().length === 0){
-                                        //No value has been entered
+                                    if(!$control.data('odkControl-properties').hasOwnProperty('__semantics__'+propName)){
+                                        //Property isn't even attached
                                         missingProps[templateName].optional[propName].push($control.data('odkControl-properties').name.value);
                                         _missingOptionalProps[templateName].push({
                                             control: $control.data('odkControl-properties').name.value,
                                             prop: propName
                                         });
                                         displayingWarning = true;
+                                    } else {
+                                        //Property is attached so we have to check if a value has been entered
+                                        var value = $control.data('odkControl-properties')['__semantics__'+propName].value;
+                                        if(value == null || value.trim().length === 0){
+                                            //No value has been entered
+                                            missingProps[templateName].optional[propName].push($control.data('odkControl-properties').name.value);
+                                            _missingOptionalProps[templateName].push({
+                                                control: $control.data('odkControl-properties').name.value,
+                                                prop: propName
+                                            });
+                                            displayingWarning = true;
+                                        }
                                     }
                                 }
                             }
-                        }
-                    });
+                        });
+                    }
                 }
             }
 
