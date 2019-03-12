@@ -235,7 +235,7 @@ var dataNS = odkmaker.namespace.load('odkmaker.data');
             var $checked = $('.rdfDialog .propertyCheckboxes input:checked');
             $checked.each(function(){
                 //Add each checked property
-                $.fn.odkControl.addSemanticProperty($(this).val());
+                odkmaker.control.addSemanticProperty($(this).val());
             });
             //Close the dialogs
             $('.rdfDialog').jqmHide();
@@ -312,7 +312,7 @@ var dataNS = odkmaker.namespace.load('odkmaker.data');
                     //missing at least one of them give the user the option 
                     //to add them before resuming with the upload
                     var missingList = [];
-                    var current = $.fn.odkControl.currentSemanticProperties();
+                    var current = odkmaker.control.currentSemanticProperties();
                     for (var property in rdfTemplateConfig.availableProperties) {
                         if (rdfTemplateConfig.availableProperties.hasOwnProperty(property)) {
                             if (!current.includes(property))

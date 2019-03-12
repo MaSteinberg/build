@@ -84,6 +84,10 @@
                 var propertyListItem = $('<li class="propertyItem"/>');
                 propertyListItem.propertyEditor(property, name, $this)
                     .appendTo(appendToElement);
+                //Provide autocompletion for semantics fields
+                if(property.semantics === true){
+                    propertyListItem.find('input').semanticAutocompletion();
+                }
             });
 
             // drop in advanced
@@ -955,12 +959,12 @@
     var _currentSemProperties = [];
 
     //Accessor for the current semantic properties
-    $.fn.odkControl.currentSemanticProperties = function() {return _currentSemProperties; }
+    controlNS.currentSemanticProperties = function() {return _currentSemProperties; }
 
     //Takes a list of properties and adds them to the current properties
     //Since the DOM (after the constructor-function) doesn't use the
     //currentSemanticProperties we have to add the properties as data-attributes manually
-    $.fn.odkControl.addSemanticProperty = function(prop){
+    controlNS.addSemanticProperty = function(prop){
         if(!_currentSemProperties.includes(prop)){
             _currentSemProperties.push(prop);
             var newProperty = addSemanticsAsDefaultProperty(prop);
