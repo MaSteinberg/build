@@ -230,13 +230,13 @@ var dataNS = odkmaker.namespace.load('odkmaker.data');
             $form.submit();
         });
 
-        $('.rdfDialog .addMissingSemPropsButton').click(function (event) {
-            //Grab the array of missing properties that's attached to the button
-            var missing = $(this).data("missing");
-            //Remove the array so the properties can't be added multiple times
-            $(this).data("missing", []);
-            //Add the list to the current semantic properties
-            $.fn.odkControl.addSemanticProperty(missing);
+        $('.rdfDialog .addSemPropsButton').click(function (event) {
+            //Grab the properties (checkboxes) that were checked by the user
+            var $checked = $('.rdfDialog .propertyCheckboxes input:checked');
+            $checked.each(function(){
+                //Add each checked property
+                $.fn.odkControl.addSemanticProperty($(this).val());
+            });
             //Close the dialogs
             $('.rdfDialog').jqmHide();
             $('.aggregateDialog').jqmHide();
@@ -251,6 +251,14 @@ var dataNS = odkmaker.namespace.load('odkmaker.data');
             $('.aggregateDialog').jqmHide();
         });
 
+        $('.rdfDialog .checkboxControl .checkboxControlSelectAll').click(function(event){
+            $('.rdfDialog .propertyCheckboxes input').prop('checked', true);
+        });
+
+        $('.rdfDialog .checkboxControl .checkboxControlDeselectAll').click(function(event){
+            $('.rdfDialog .propertyCheckboxes input').prop('checked', false);
+        });
+
         $('.aggregateDialog .aggregateExportButton').click(function (event) {
             event.preventDefault();
 
@@ -259,7 +267,7 @@ var dataNS = odkmaker.namespace.load('odkmaker.data');
             //Reset lists of missing properties
             $('.rdfDialog ul').empty();
 
-            var rdfTemplateConfig = {
+            /*var rdfTemplateConfig = {
                 "availableProperties": {
                     "Creator": {
                         "Endpoint": null,
@@ -288,193 +296,212 @@ var dataNS = odkmaker.namespace.load('odkmaker.data');
                         }
                     }
                 }
-            };
+            };*/
             
 
-            //Get the RDF-Export's semantic properties from the specified Aggregate server
-            /*$.ajax({
+            //Get the RDF-Export's semantic properties from the specified Aggregate server       
+            var protocol = $('.aggregateInstanceProtocol').val();
+            var target = $('.aggregateInstanceName').val();
+            $.ajax({
                 type: 'GET',
                 url: protocol + '://' + target + '/rdfTemplateConfig',
                 dataType: 'json',
-                success: function(rdfTemplateConfig){*/
-            var displayingWarning = false;
-            //Compare the received properties with our current properties, if we're 
-            //missing at least one of them give the user the option 
-            //to add them before resuming with the upload
-            var missingList = [];
-            var current = $.fn.odkControl.currentSemanticProperties();
-            for (var property in rdfTemplateConfig.availableProperties) {
-                if (rdfTemplateConfig.availableProperties.hasOwnProperty(property)) {
-                    if (!current.includes(property))
-                        missingList.push(property);
-                }
-            }
-            if (missingList.length > 0) {
-                displayingWarning = true;
-
-                //Display warning message with list of missing properties
-                var $missingPropsList = $('.rdfDialog .rdfMissingSemPropsContainer ul');
-                $('.rdfDialog .rdfMissingSemPropsContainer .addMissingSemPropsButton').data("missing", missingList);
-                $missingPropsList.empty();
-                _.each(missingList, function (missing) {
-                    $missingPropsList.append("<li>" + missing + "</li>");
-                });                
-                $('.rdfDialog .rdfMissingSemPropsContainer').show();
-            } else{
-                $('.rdfMissingSemPropsContainer').hide();
-            }
-
-            //Check which semantic properties are missing for which template
-            var _missingRequiredProps = {};
-            var missingProps = {};
-            var _missingOptionalProps = {};
-            var $activeControls = $('.workspace .control');
-            /*For each template..*/
-            for(var templateName in rdfTemplateConfig.templates){
-                if(rdfTemplateConfig.templates.hasOwnProperty(templateName)){
-                    _missingRequiredProps[templateName] = [];
-                    missingProps[templateName] = {
-                        required: {},
-                        optional: {}
-                    };
-                    _missingOptionalProps[templateName] = [];
-                    var templateProperties = rdfTemplateConfig.templates[templateName].templateProperties;
-                    /*If the template has some required/optional properties*/
-                    if(templateProperties){
-                        /*For each control...*/
-                        $activeControls.each(function(){
-                            $control = $(this);                        
-                            /*Check if this template has any required properties*/
-                            if(templateProperties.requiredProperties){
-                                /*For each required property...*/
-                                for(var i = 0; i < templateProperties.requiredProperties.length; i++){
-                                    var propName = templateProperties.requiredProperties[i];
-                                    if(!missingProps[templateName].required.hasOwnProperty(propName)){
-                                        missingProps[templateName].required[propName] = [];
-                                    }
-
-                                    if(!$control.data('odkControl-properties').hasOwnProperty('__semantics__'+propName)){
-                                        //Semantic property isn't even attached yet
-                                        missingProps[templateName].required[propName].push($control.data('odkControl-properties').name.value);
-                                        _missingRequiredProps[templateName].push({
-                                            control: $control.data('odkControl-properties').name.value,
-                                            prop: propName
-                                        });
-                                        displayingWarning = true;
-                                    } else {
-                                        //Semantic property is attached so we have to check if a value has been entered
-                                        var value = $control.data('odkControl-properties')['__semantics__'+propName].value;
-                                        if(value == null || value.trim().length === 0){
-                                            //No value has been entered
-                                            missingProps[templateName].required[propName].push($control.data('odkControl-properties').name.value);
-                                            _missingRequiredProps[templateName].push({
-                                                control: $control.data('odkControl-properties').name.value,
-                                                prop: propName
-                                            });
-                                            displayingWarning = true;
-                                        }
-                                    }
-                                }
-                            }
-
-                            /*Check if this template has any optional properties*/
-                            if(templateProperties.optionalProperties){
-                                /*For each optional property...*/
-                                for(var i = 0; i < templateProperties.optionalProperties.length; i++){
-                                    var propName = templateProperties.optionalProperties[i];
-                                    if(!missingProps[templateName].optional.hasOwnProperty(propName)){
-                                        missingProps[templateName].optional[propName] = [];
-                                    }
-
-                                    if(!$control.data('odkControl-properties').hasOwnProperty('__semantics__'+propName)){
-                                        //Property isn't even attached
-                                        missingProps[templateName].optional[propName].push($control.data('odkControl-properties').name.value);
-                                        _missingOptionalProps[templateName].push({
-                                            control: $control.data('odkControl-properties').name.value,
-                                            prop: propName
-                                        });
-                                        displayingWarning = true;
-                                    } else {
-                                        //Property is attached so we have to check if a value has been entered
-                                        var value = $control.data('odkControl-properties')['__semantics__'+propName].value;
-                                        if(value == null || value.trim().length === 0){
-                                            //No value has been entered
-                                            missingProps[templateName].optional[propName].push($control.data('odkControl-properties').name.value);
-                                            _missingOptionalProps[templateName].push({
-                                                control: $control.data('odkControl-properties').name.value,
-                                                prop: propName
-                                            });
-                                            displayingWarning = true;
-                                        }
-                                    }
-                                }
-                            }
+                success: function(rdfTemplateConfig){
+                    var displayingWarning = false;
+                    //Compare the received properties with our current properties, if we're 
+                    //missing at least one of them give the user the option 
+                    //to add them before resuming with the upload
+                    var missingList = [];
+                    var current = $.fn.odkControl.currentSemanticProperties();
+                    for (var property in rdfTemplateConfig.availableProperties) {
+                        if (rdfTemplateConfig.availableProperties.hasOwnProperty(property)) {
+                            if (!current.includes(property))
+                                missingList.push(property);
+                        }
+                    }
+                    if (missingList.length > 0) {
+                        displayingWarning = true;
+                        /*Display a checkbox for each missing property*/
+                        var $checkboxContainer = $('.rdfDialog .rdfMissingSemPropsContainer .propertyCheckboxes').empty();
+                        _.each(missingList, function(missing){
+                            var $checkbox = $("<input type='checkbox'>").attr({name: 'semanticProperty', value: missing, id: missing});
+                            var $checkboxLabel = $('<label>' + missing + '</label>').attr({for: missing});
+                            $checkboxContainer.append($checkbox, $checkboxLabel);
                         });
-                    }
-                }
-            }
 
-            //Display the lists of missing semantic properties
-            for(var templateName in missingProps){
-                var missingRequired = missingProps[templateName].required;
-                var missingOptional = missingProps[templateName].optional;
-
-                var $missingRequirementsList = $('.rdfMissingRequirementsList');
-                for(var propName in missingRequired){
-                    if(missingRequired[propName].length > 0){
-                        //TODO Inefficient?
-                        var controlListString = missingRequired[propName].map(function(controlName){
-                            return '<li>' + controlName + '</li>';
-                        }).join('');
-                        $missingRequirementsList.append('<li>'+ 
-                            '<b>' + templateName + '</b>' +
-                            ' requires ' + 
-                            '<b>' + propName + '</b>' + 
-                            ' which is currently missing for ' + 
-                            '<ul>' + controlListString + '</ul>' +
-                            '</li>');
+                        /*Display a button for each template*/
+                        var $templateButtonContainer = $('.rdfDialog .rdfMissingSemPropsContainer .templateButtons').empty();
+                        _.each(rdfTemplateConfig.templates, function(templateConfig, templateIdentifier){
+                            $button = $('<a />', {
+                                class: 'modalButton',
+                                text: templateConfig.displayName,
+                                click: function(e){
+                                    /*Check all checkboxes that belong to properties that are either
+                                    optional or required for the current template*/
+                                    function check(prop){
+                                        $checkboxContainer.find('#'+prop).prop('checked', true);
+                                    };
+                                    _.each(templateConfig.templateProperties.requiredProperties, check);
+                                    _.each(templateConfig.templateProperties.optionalProperties, check);
+                                }
+                            });
+                            $templateButtonContainer.append($button);
+                        });
+                        
+                        /*Make container visible*/
+                        $('.rdfDialog .rdfMissingSemPropsContainer').show();
+                    } else{
+                        $('.rdfMissingSemPropsContainer').hide();
                     }
-                }
-                var $missingOptionalsList = $('.rdfMissingOptionalsList');
-                for(var propName in missingOptional){
-                    if(missingOptional[propName].length > 0){
-                        //TODO Probably inefficient
-                        var controlListString = missingOptional[propName].map(function(controlName){
-                            return '<li>' + controlName + '</li>';
-                        }).join('');
-                        $missingOptionalsList.append('<li>'+ 
-                            '<b>' + templateName + '</b>' +
-                            ' can use ' + 
-                            '<b>' + propName + '</b>' + 
-                            ' which is currently missing for ' + 
-                            '<ul>' + controlListString + '</ul>' +
-                            '</li>');
-                    }
-                }
-            }
 
-            if(displayingWarning){
-                $('.rdfDialog').jqmShow();
-            } else{
-                //Everything is okay, resume with the actual upload  
-                triggerFormUpload();
-            }
-            
-            /*},
-            error: function(jqXHR, textStatus, errorThrown ){
-                console.log("RDF Config request failed: " + textStatus);
-                console.log(errorThrown);
-                //TODO Resume with usual upload, this error means the aggregate server
-                //either doesn't support the RDF-export or it's broken
-                triggerFormUpload();
-            }
-        });*/
+                    //Check which semantic properties are missing for which template
+                    var _missingRequiredProps = {};
+                    var missingProps = {};
+                    var _missingOptionalProps = {};
+                    var $activeControls = $('.workspace .control');
+                    /*For each template..*/
+                    for(var templateName in rdfTemplateConfig.templates){
+                        if(rdfTemplateConfig.templates.hasOwnProperty(templateName)){
+                            _missingRequiredProps[templateName] = [];
+                            missingProps[templateName] = {
+                                required: {},
+                                optional: {}
+                            };
+                            _missingOptionalProps[templateName] = [];
+                            var templateProperties = rdfTemplateConfig.templates[templateName].templateProperties;
+                            /*If the template has some required/optional properties*/
+                            if(templateProperties){
+                                /*For each control...*/
+                                $activeControls.each(function(){
+                                    $control = $(this);                        
+                                    /*Check if this template has any required properties*/
+                                    if(templateProperties.requiredProperties){
+                                        /*For each required property...*/
+                                        for(var i = 0; i < templateProperties.requiredProperties.length; i++){
+                                            var propName = templateProperties.requiredProperties[i];
+                                            if(!missingProps[templateName].required.hasOwnProperty(propName)){
+                                                missingProps[templateName].required[propName] = [];
+                                            }
+
+                                            if(!$control.data('odkControl-properties').hasOwnProperty('__semantics__'+propName)){
+                                                //Semantic property isn't even attached yet
+                                                missingProps[templateName].required[propName].push($control.data('odkControl-properties').name.value);
+                                                _missingRequiredProps[templateName].push({
+                                                    control: $control.data('odkControl-properties').name.value,
+                                                    prop: propName
+                                                });
+                                                displayingWarning = true;
+                                            } else {
+                                                //Semantic property is attached so we have to check if a value has been entered
+                                                var value = $control.data('odkControl-properties')['__semantics__'+propName].value;
+                                                if(value == null || value.trim().length === 0){
+                                                    //No value has been entered
+                                                    missingProps[templateName].required[propName].push($control.data('odkControl-properties').name.value);
+                                                    _missingRequiredProps[templateName].push({
+                                                        control: $control.data('odkControl-properties').name.value,
+                                                        prop: propName
+                                                    });
+                                                    displayingWarning = true;
+                                                }
+                                            }
+                                        }
+                                    }
+
+                                    /*Check if this template has any optional properties*/
+                                    if(templateProperties.optionalProperties){
+                                        /*For each optional property...*/
+                                        for(var i = 0; i < templateProperties.optionalProperties.length; i++){
+                                            var propName = templateProperties.optionalProperties[i];
+                                            if(!missingProps[templateName].optional.hasOwnProperty(propName)){
+                                                missingProps[templateName].optional[propName] = [];
+                                            }
+
+                                            if(!$control.data('odkControl-properties').hasOwnProperty('__semantics__'+propName)){
+                                                //Property isn't even attached
+                                                missingProps[templateName].optional[propName].push($control.data('odkControl-properties').name.value);
+                                                _missingOptionalProps[templateName].push({
+                                                    control: $control.data('odkControl-properties').name.value,
+                                                    prop: propName
+                                                });
+                                                displayingWarning = true;
+                                            } else {
+                                                //Property is attached so we have to check if a value has been entered
+                                                var value = $control.data('odkControl-properties')['__semantics__'+propName].value;
+                                                if(value == null || value.trim().length === 0){
+                                                    //No value has been entered
+                                                    missingProps[templateName].optional[propName].push($control.data('odkControl-properties').name.value);
+                                                    _missingOptionalProps[templateName].push({
+                                                        control: $control.data('odkControl-properties').name.value,
+                                                        prop: propName
+                                                    });
+                                                    displayingWarning = true;
+                                                }
+                                            }
+                                        }
+                                    }
+                                });
+                            }
+                        }
+                    }
+
+                    //Display the lists of missing semantic properties
+                    for(var templateName in missingProps){
+                        var missingRequired = missingProps[templateName].required;
+                        var missingOptional = missingProps[templateName].optional;
+
+                        var $missingRequirementsList = $('.rdfMissingRequirementsList');
+                        for(var propName in missingRequired){
+                            if(missingRequired[propName].length > 0){
+                                //TODO Inefficient?
+                                var controlListString = missingRequired[propName].map(function(controlName){
+                                    return '<li>' + controlName + '</li>';
+                                }).join('');
+                                $missingRequirementsList.append('<li>'+ 
+                                    '<b>' + templateName + '</b>' +
+                                    ' requires ' + 
+                                    '<b>' + propName + '</b>' + 
+                                    ' which is currently missing for ' + 
+                                    '<ul>' + controlListString + '</ul>' +
+                                    '</li>');
+                            }
+                        }
+                        var $missingOptionalsList = $('.rdfMissingOptionalsList');
+                        for(var propName in missingOptional){
+                            if(missingOptional[propName].length > 0){
+                                //TODO Probably inefficient
+                                var controlListString = missingOptional[propName].map(function(controlName){
+                                    return '<li>' + controlName + '</li>';
+                                }).join('');
+                                $missingOptionalsList.append('<li>'+ 
+                                    '<b>' + templateName + '</b>' +
+                                    ' can use ' + 
+                                    '<b>' + propName + '</b>' + 
+                                    ' which is currently missing for ' + 
+                                    '<ul>' + controlListString + '</ul>' +
+                                    '</li>');
+                            }
+                        }
+                    }
+
+                    if(displayingWarning){
+                        $('.rdfDialog').jqmShow();
+                    } else{
+                        //Everything is okay, resume with the actual upload  
+                        triggerFormUpload();
+                    }
+                },
+                error: function(jqXHR, textStatus, errorThrown ){
+                    console.log("RDF Config request failed: " + textStatus);
+                    console.log(errorThrown);
+                    //Resume with usual upload, this error means the aggregate server
+                    //either doesn't support the RDF-export or it's broken
+                    triggerFormUpload(protocol, target);
+                }
+            });
         });
 
-        var triggerFormUpload = function(){
+        var triggerFormUpload = function(protocol, target){
             var $loading = $('.aggregateDialog .modalLoadingOverlay');
-            var protocol = $('.aggregateInstanceProtocol').val();
-            var target = $('.aggregateInstanceName').val();
             $loading.show();
             $('.aggregateDialog .errorMessage').empty().hide();
 

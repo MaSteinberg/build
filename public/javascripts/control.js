@@ -80,8 +80,9 @@
                     appendToElement = $semanticsList;
                 else
                     appendToElement = $propertyList;
-                $('<li class="propertyItem"/>')
-                    .propertyEditor(property, name, $this)
+
+                var propertyListItem = $('<li class="propertyItem"/>');
+                propertyListItem.propertyEditor(property, name, $this)
                     .appendTo(appendToElement);
             });
 
@@ -959,14 +960,12 @@
     //Takes a list of properties and adds them to the current properties
     //Since the DOM (after the constructor-function) doesn't use the
     //currentSemanticProperties we have to add the properties as data-attributes manually
-    $.fn.odkControl.addSemanticProperty = function(list){
-        _.each(list, function(prop){
-            if(!_currentSemProperties.includes(prop)){
-                _currentSemProperties.push(prop);
-                var newProperty = addSemanticsAsDefaultProperty(prop);
-                addPropertyToActiveControls(newProperty);
-            }
-        });
+    $.fn.odkControl.addSemanticProperty = function(prop){
+        if(!_currentSemProperties.includes(prop)){
+            _currentSemProperties.push(prop);
+            var newProperty = addSemanticsAsDefaultProperty(prop);
+            addPropertyToActiveControls(newProperty);
+        }
         //Deselect all selected controls so the properties editor is empty and 
         //will refresh with the next selection
         $('.control.selected').each(deselect);

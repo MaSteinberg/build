@@ -403,15 +403,22 @@
         <div class="modalContents">
             <div class="rdfMissingSemPropsContainer">
               <p>
-                The RDF export on this server uses some semantic properties that your ODK Build is currently not providing:
+                The RDF export on this server uses some semantic properties that your ODK Build is currently not providing.
+                You can select which to add to your surveys. You can also select the RDF-export templates 
+                you are interested in and the related properties will be selected for you.
               </p>
               <ul class="missingSemPropsList">
               </ul>
-              <p>
-                Do you want to add all of them now and review your survey?
-              </p>
+              <div class="propertyCheckboxes">
+              </div>
+              <div class="templateButtons modalButtonContainer">
+              </div>
+              <div class="checkboxControl modalButtonContainer">
+                <a class="modalButton checkboxControlSelectAll">Select all</a>
+                <a class="modalButton checkboxControlDeselectAll">Deselect all</a>
+              </div>
               <div class="modalButtonContainer">
-                <a class="modalButton addMissingSemPropsButton">Yes, add all</a>
+                <a class="modalButton addSemPropsButton">Add selected</a>
               </div>
             </div>
             <div class="rdfMissingRequirementsContainer">
