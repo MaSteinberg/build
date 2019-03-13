@@ -316,7 +316,7 @@ var dataNS = odkmaker.namespace.load('odkmaker.data');
                     //missing at least one of them give the user the option 
                     //to add them before resuming with the upload
                     var missingList = [];
-                    var current = odkmaker.control.currentSemanticProperties();
+                    var current = odkmaker.control.currentSemProperties;
                     for (var property in rdfTemplateConfig.availableProperties) {
                         if (rdfTemplateConfig.availableProperties.hasOwnProperty(property)) {
                             if (!current.includes(property))
