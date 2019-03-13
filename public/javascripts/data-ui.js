@@ -236,6 +236,8 @@ var dataNS = odkmaker.namespace.load('odkmaker.data');
             $checked.each(function(){
                 //Add each checked property
                 odkmaker.control.addSemanticProperty($(this).val());
+                //Load the autocompletion for the property
+                odkmaker.autocompletion.getSemanticAutocompletion($(this).val());
             });
             //Close the dialogs
             $('.rdfDialog').jqmHide();
