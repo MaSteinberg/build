@@ -302,6 +302,10 @@ var dataNS = odkmaker.namespace.load('odkmaker.data');
             //Get the RDF-Export's semantic properties from the specified Aggregate server       
             var protocol = $('.aggregateInstanceProtocol').val();
             var target = $('.aggregateInstanceName').val();
+            
+            //Save the protocol and target to later pull the autocompletion from the same server
+            odkmaker.application.serverProtocol = protocol;
+            odkmaker.application.serverAddress = target;
             $.ajax({
                 type: 'GET',
                 url: protocol + '://' + target + '/rdfTemplateConfig',
@@ -495,16 +499,18 @@ var dataNS = odkmaker.namespace.load('odkmaker.data');
                     console.log(errorThrown);
                     //Resume with usual upload, this error means the aggregate server
                     //either doesn't support the RDF-export or it's broken
-                    triggerFormUpload(protocol, target);
+                    triggerFormUpload();
                 }
             });
         });
 
-        var triggerFormUpload = function(protocol, target){
+        var triggerFormUpload = function(){
             var $loading = $('.aggregateDialog .modalLoadingOverlay');
             $loading.show();
             $('.aggregateDialog .errorMessage').empty().hide();
-
+            
+            var protocol = $('.aggregateInstanceProtocol').val();
+            var target = $('.aggregateInstanceName').val();
             $.ajax({
                 url: '/aggregate/post',
                 dataType: 'json',
