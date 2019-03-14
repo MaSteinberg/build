@@ -39,7 +39,7 @@ var autoNS = odkmaker.namespace.load('odkmaker.autocompletion');
                     /*execute a function when someone clicks on the item value (DIV element):*/
                         b.addEventListener("click", function(e) {
                         /*insert the value for the autocomplete text field:*/
-                        inp.value = "_onto_" + this.getElementsByTagName("input")[0].value;
+                        inp.value = this.getElementsByTagName("input")[0].value;
                         //Trigger the input event so data-properties are updated properly
                         $(inp).trigger('input');
                         /*close the list of autocompleted values,
@@ -109,8 +109,14 @@ var autoNS = odkmaker.namespace.load('odkmaker.autocompletion');
 
     $.fn.extend({
         semanticAutocompletion: function(property){
+            var autocompletionArray;
+            if(autoNS.cache[property]){
+                autocompletionArray = getControlReferenceAutocompletion().concat(autoNS.cache[property]);
+            } else{
+                autocompletionArray = getControlReferenceAutocompletion();
+            }
             return this.each(function(){
-                activateAutocompletion(this, autoNS.cache[property] ? autoNS.cache[property] : []);
+                activateAutocompletion(this, autocompletionArray);
             });
         }
     });
@@ -125,7 +131,8 @@ var autoNS = odkmaker.namespace.load('odkmaker.autocompletion');
                 type: 'GET',
                 url: protocol + '://' + target + '/semanticAutocomplete',
                 data: {
-                    "semanticProperty": property
+                    "semanticProperty": property,
+                    "prefixed": true
                 },
                 dataType: 'json',
                 success: function(list){
@@ -146,5 +153,30 @@ var autoNS = odkmaker.namespace.load('odkmaker.autocompletion');
                 }
             });
         }
+    }
+
+    /*Function to get a list of names of all controls currently in the workspace*/
+    function getAllControlNames(){
+        var controlNames = [];
+        /*Not using the odkmaker.data.extract function here because it does 
+        a lot more than we actually need*/
+        $('.workspace .control').each(function(){
+            var controlName = $(this).data('odkControl-properties').name.value;
+            controlNames.push(controlName);
+        });
+        return controlNames;
+    }
+
+
+    function getControlReferenceAutocompletion(){
+        var controlNames = getAllControlNames();
+        var autocompletion = [];
+        for(var i = 0; i < controlNames.length; i++){
+            autocompletion.push({
+                value: "_col_" + controlNames[i],
+                label: controlNames[i] + " (Reference to question)"
+            });
+        }
+        return autocompletion;
     }
 })(jQuery);
