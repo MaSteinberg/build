@@ -147,7 +147,7 @@ var autoNS = odkmaker.namespace.load('odkmaker.autocompletion');
                     }
                 },
                 error: function(jqXHR, textStatus, errorThrown ){
-                    console.error("Could not get autocompletion for " + property + textStatus);
+                    console.error("Could not get autocompletion for " + property + " " + textStatus);
                     console.error(errorThrown);
                     autoNS.cache[property] = [];
                 }

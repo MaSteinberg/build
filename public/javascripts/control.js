@@ -126,6 +126,14 @@
         $propertyList.on('click', '.toggleSemantics', function(event){
             event.preventDefault();
             $propertyList.toggleClass('showSemantics');
+            
+            /*Workaround so the input fields don't overlap with the
+            vertical scroll bar. Adapted from: 
+            https://stackoverflow.com/a/47368021 */
+            $semPropList = $propertyList.find('.semanticProperties');
+            var widthWithScrollbar = $semPropList.innerWidth();
+            var widthWithoutScrollbar = $semPropList[0]['clientWidth'];
+            $semPropList.css('margin-right', widthWithScrollbar - widthWithoutScrollbar);
         });
     });
 
