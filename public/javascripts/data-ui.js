@@ -308,11 +308,19 @@ var dataNS = odkmaker.namespace.load('odkmaker.data');
             //Save the protocol and target to later pull the autocompletion from the same server
             odkmaker.application.serverProtocol = protocol;
             odkmaker.application.serverAddress = target;
+
+            /*Show loading icon*/
+            var $loading = $('.aggregateDialog .modalLoadingOverlay');
+            $loading.show();
+
             $.ajax({
                 type: 'GET',
                 url: protocol + '://' + target + '/rdfTemplateConfig',
                 dataType: 'json',
                 success: function(rdfTemplateConfig){
+                    //Hide loading icon
+                    $loading.hide();
+
                     var displayingWarning = false;
                     //Compare the received properties with our current properties, if we're 
                     //missing at least one of them give the user the option 
@@ -499,12 +507,13 @@ var dataNS = odkmaker.namespace.load('odkmaker.data');
                 error: function(jqXHR, textStatus, errorThrown ){
                     console.error("RDF Configuration request failed: " + textStatus);
                     console.error("Resuming upload without checking for missing semantics");
+                    //Hide loading icon (will be reactivated by triggerFormUpload())
+                    $loading.hide();
                     //Resume with usual upload, this error means the aggregate server
                     //either doesn't support the RDF-export or it's broken
                     triggerFormUpload();
                 },
                 timeout: 5000
-
             });
         });
 
