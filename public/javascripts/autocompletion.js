@@ -136,21 +136,12 @@ var autoNS = odkmaker.namespace.load('odkmaker.autocompletion');
                 },
                 dataType: 'json',
                 success: function(list){
-                    if(list === null){
-                        /*This means that we don't have a valid configuration for this property.
-                        For now just don't provide autocompletion.*/
-                        console.log("The configuration for property " + property + " seems to be missing or incorrect. No autocompletion can be provided.");
-                        autoNS.cache[property] = [];
-                    } else{
-                        /*Add terms to autocompletion cache. The list might intentionally be empty!*/
-                        autoNS.cache[property] = list;
-                        /*Activate autocompletion in case a property-editor is currently active*/
-                        $('.semanticsAdvanced .semanticProperties input').semanticAutocompletion(property);
-                    }
+                    /*Add terms to autocompletion cache. The list might intentionally be empty!*/
+                    autoNS.cache[property] = list;
+                    /*Activate autocompletion in case a property-editor is currently active*/
+                    $('.semanticsAdvanced .semanticProperties input').semanticAutocompletion(property);
                 },
                 error: function(jqXHR, textStatus, errorThrown ){
-                    console.error("Could not get autocompletion for " + property + " " + textStatus);
-                    console.error(errorThrown);
                     autoNS.cache[property] = [];
                 }
             });
