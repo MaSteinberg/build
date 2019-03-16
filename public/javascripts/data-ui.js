@@ -497,12 +497,14 @@ var dataNS = odkmaker.namespace.load('odkmaker.data');
                     }
                 },
                 error: function(jqXHR, textStatus, errorThrown ){
-                    console.log("RDF Config request failed: " + textStatus);
-                    console.log(errorThrown);
+                    console.error("RDF Configuration request failed: " + textStatus);
+                    console.error("Resuming upload without checking for missing semantics");
                     //Resume with usual upload, this error means the aggregate server
                     //either doesn't support the RDF-export or it's broken
                     triggerFormUpload();
-                }
+                },
+                timeout: 5000
+
             });
         });
 
