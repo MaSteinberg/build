@@ -86,7 +86,7 @@
                     .appendTo(appendToElement);
                 //Provide autocompletion for semantics fields
                 if(property.semantics === true){
-                    propertyListItem.find('input').semanticAutocompletion(property.forSemProperty);
+                    propertyListItem.find('input').semanticAutocompletion(property.name);
                 }
             });
 
@@ -947,7 +947,6 @@
             description: "Information about the " + semProperty + " is helpful for the RDF-Export of ODK Aggregate",
             value: "",
             semantics: true,
-            forSemProperty: semProperty,
             summary: false
         };
         $.fn.odkControl.defaultProperties["__semantics__" + semProperty] = newProperty;
