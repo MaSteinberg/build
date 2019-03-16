@@ -144,6 +144,8 @@ var autoNS = odkmaker.namespace.load('odkmaker.autocompletion');
                     } else{
                         /*Add terms to autocompletion cache. The list might intentionally be empty!*/
                         autoNS.cache[property] = list;
+                        /*Activate autocompletion in case a property-editor is currently active*/
+                        $('.semanticsAdvanced .semanticProperties input').semanticAutocompletion(property);
                     }
                 },
                 error: function(jqXHR, textStatus, errorThrown ){
