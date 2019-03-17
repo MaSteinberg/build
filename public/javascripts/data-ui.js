@@ -336,11 +336,13 @@ var dataNS = odkmaker.namespace.load('odkmaker.data');
                     if (missingList.length > 0) {
                         displayingWarning = true;
                         /*Display a checkbox for each missing property*/
-                        var $checkboxContainer = $('.rdfDialog .rdfMissingSemPropsContainer .propertyCheckboxes').empty();
+                        var $checkboxesContainer = $('.rdfDialog .rdfMissingSemPropsContainer .propertyCheckboxes').empty();
                         _.each(missingList, function(missing){
+                            var $checkboxContainer = $('<div></div>').addClass('checkboxContainer');
                             var $checkbox = $("<input type='checkbox'>").attr({name: 'semanticProperty', value: missing, id: missing});
                             var $checkboxLabel = $('<label>' + missing + '</label>').attr({for: missing});
                             $checkboxContainer.append($checkbox, $checkboxLabel);
+                            $checkboxesContainer.append($checkboxContainer);
                         });
 
                         /*Display a button for each template*/
@@ -353,7 +355,7 @@ var dataNS = odkmaker.namespace.load('odkmaker.data');
                                     /*Check all checkboxes that belong to properties that are either
                                     optional or required for the current template*/
                                     function check(prop){
-                                        $checkboxContainer.find('#'+prop).prop('checked', true);
+                                        $checkboxesContainer.find('#'+prop).prop('checked', true);
                                     };
                                     _.each(templateConfig.templateProperties.requiredProperties, check);
                                     _.each(templateConfig.templateProperties.optionalProperties, check);

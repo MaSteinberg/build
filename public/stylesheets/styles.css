@@ -1523,6 +1523,14 @@ body > .control.last .controlFlowArrow,
 {
     padding-left: 2.0em;
 }
+.rdfDialog .modalButton
+{
+    display: inline-block;
+}
+.rdfDialog .modalContents > div
+{
+    margin-top: 2.0em;
+}
 
 /*************************************************************
  * AUTOCOMPLETION adapted from                               *
