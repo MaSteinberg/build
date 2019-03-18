@@ -370,11 +370,15 @@ var dataNS = odkmaker.namespace.load('odkmaker.data');
                         $('.rdfMissingSemPropsContainer').hide();
                     }
 
-                    //Check which semantic properties are missing for which template
+                    //Check which semantic properties are missing for which template/control combination
                     var _missingRequiredProps = {};
                     var missingProps = {};
                     var _missingOptionalProps = {};
-                    var $activeControls = $('.workspace .control');
+                    var $activeControls = $('.workspace .control').filter(function(){
+                        //Don't consider groups and branches, they don't have semantic properties
+                        var type = $(this).data('odkControlType');
+                        return (type != 'group' && type != 'branch');
+                    });
                     /*For each template..*/
                     for(var templateName in rdfTemplateConfig.templates){
                         if(rdfTemplateConfig.templates.hasOwnProperty(templateName)){
