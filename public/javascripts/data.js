@@ -779,14 +779,26 @@ var dataNS = odkmaker.namespace.load('odkmaker.data');
             parseControlSemantics(control, semanticsRoot);
             
             //Remove the semantics for the serialization so they are not added to the normal XForms-description
-            var controlWithoutSemantics = _.omit(control, function(value, key, object){
-                return key.startsWith("__semantics__");
-            });
+            var controlWithoutSemantics = omitSemanticProperties(control);
             parseControl(controlWithoutSemantics, '/data/', instanceHead, translations, model, body);
         });
 
         return root;
     };
+
+    var omitSemanticProperties = function(control){
+        var controlWithoutSemantics = _.omit(control, function(value, key, object){
+            return key.startsWith("__semantics__");
+        });
+        //Deal with nested controls
+        if(control.children){
+            for (let i = 0; i < control.children.length; i++) {
+                const child = control.children[i];
+                control.children[i] = omitSemanticProperties(child);
+            }
+        }
+        return controlWithoutSemantics;
+    }
 
     var parseControlSemantics = function(control, semanticsRoot){
         //Create a semantics node for this control element
@@ -806,6 +818,13 @@ var dataNS = odkmaker.namespace.load('odkmaker.data');
                     controlSemanticsNode.attrs[semanticsName] = value;
                 }
             }
+        }
+
+        //Groups might have children which can have semantics that have to be parsed
+        if(control.type == 'group'){
+            _.forEach(control.children, function(child){
+                parseControlSemantics(child, semanticsRoot, true);
+            });
         }
     }
 
