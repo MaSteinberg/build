@@ -370,6 +370,7 @@ var dataNS = odkmaker.namespace.load('odkmaker.data');
                         $('.rdfMissingSemPropsContainer').hide();
                     }
 
+                    var prefix = odkmaker.data.semantics.semPropertyPrefix;
                     //Check which semantic properties are missing for which template/control combination
                     var _missingRequiredProps = {};
                     var missingProps = {};
@@ -403,7 +404,7 @@ var dataNS = odkmaker.namespace.load('odkmaker.data');
                                                 missingProps[templateName].required[propName] = [];
                                             }
 
-                                            if(!$control.data('odkControl-properties').hasOwnProperty('__semantics__'+propName)){
+                                            if(!$control.data('odkControl-properties').hasOwnProperty(prefix+propName)){
                                                 //Semantic property isn't even attached yet
                                                 missingProps[templateName].required[propName].push($control.data('odkControl-properties').name.value);
                                                 _missingRequiredProps[templateName].push({
@@ -413,7 +414,7 @@ var dataNS = odkmaker.namespace.load('odkmaker.data');
                                                 displayingWarning = true;
                                             } else {
                                                 //Semantic property is attached so we have to check if a value has been entered
-                                                var value = $control.data('odkControl-properties')['__semantics__'+propName].value;
+                                                var value = $control.data('odkControl-properties')[prefix+propName].value;
                                                 if(value == null || value.trim().length === 0){
                                                     //No value has been entered
                                                     missingProps[templateName].required[propName].push($control.data('odkControl-properties').name.value);
@@ -436,7 +437,7 @@ var dataNS = odkmaker.namespace.load('odkmaker.data');
                                                 missingProps[templateName].optional[propName] = [];
                                             }
 
-                                            if(!$control.data('odkControl-properties').hasOwnProperty('__semantics__'+propName)){
+                                            if(!$control.data('odkControl-properties').hasOwnProperty(prefix+propName)){
                                                 //Property isn't even attached
                                                 missingProps[templateName].optional[propName].push($control.data('odkControl-properties').name.value);
                                                 _missingOptionalProps[templateName].push({
@@ -446,7 +447,7 @@ var dataNS = odkmaker.namespace.load('odkmaker.data');
                                                 displayingWarning = true;
                                             } else {
                                                 //Property is attached so we have to check if a value has been entered
-                                                var value = $control.data('odkControl-properties')['__semantics__'+propName].value;
+                                                var value = $control.data('odkControl-properties')[prefix+propName].value;
                                                 if(value == null || value.trim().length === 0){
                                                     //No value has been entered
                                                     missingProps[templateName].optional[propName].push($control.data('odkControl-properties').name.value);

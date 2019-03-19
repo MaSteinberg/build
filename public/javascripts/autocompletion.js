@@ -1,6 +1,5 @@
-var autoNS = odkmaker.namespace.load('odkmaker.autocompletion');
-
 ;(function($){
+    var autoNS = odkmaker.namespace.load('odkmaker.autocompletion');
     autoNS.cache = {};
 
     //Adapted from https://www.w3schools.com/howto/howto_js_autocomplete.asp
@@ -140,7 +139,7 @@ var autoNS = odkmaker.namespace.load('odkmaker.autocompletion');
                     autoNS.cache[property] = list;
                     /*Activate autocompletion in case a property-editor is currently active*/
                     var $inputContainer = $('.semanticsAdvanced .semanticProperties .propertyItem div').filter(function(){
-                        return $(this).data('name') == '__semantics__' + property;
+                        return $(this).data('name') == odkmaker.data.semantics.semPropertyPrefix+property;
                     });
                     $inputContainer.find('input').semanticAutocompletion(property);
                 },
@@ -169,7 +168,7 @@ var autoNS = odkmaker.namespace.load('odkmaker.autocompletion');
         var autocompletion = [];
         for(var i = 0; i < controlNames.length; i++){
             autocompletion.push({
-                value: "_col_" + controlNames[i],
+                value: odkmaker.data.semantics.columnReferencePrefix + controlNames[i],
                 label: controlNames[i] + " (Reference to question)"
             });
         }

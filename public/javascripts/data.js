@@ -9,6 +9,13 @@ var dataNS = odkmaker.namespace.load('odkmaker.data');
 
 ;(function($)
 {
+    /*Prefixes for semantics*/
+    dataNS.semantics = {
+        ontoReferencePrefix : "_onto_",
+        columnReferencePrefix : "_col_",
+        semPropertyPrefix : "__semantics__"
+    }
+
     // gets just the pure data for any one control
     var getDataRepresentation = odkmaker.data.extractOne = function($control)
     {
@@ -788,7 +795,7 @@ var dataNS = odkmaker.namespace.load('odkmaker.data');
 
     var omitSemanticProperties = function(control){
         var controlWithoutSemantics = _.omit(control, function(value, key, object){
-            return key.startsWith("__semantics__");
+            return key.startsWith(dataNS.semantics.semPropertyPrefix);
         });
         //Deal with nested controls
         if(control.children){
@@ -811,9 +818,9 @@ var dataNS = odkmaker.namespace.load('odkmaker.data');
         semanticsRoot.children.push(controlSemanticsNode);
         //For each key that contains semantics information add an attribute to the node
         for(var key in control){
-            if(key.startsWith("__semantics__")){
+            if(key.startsWith(dataNS.semantics.semPropertyPrefix)){
                 var value = control[key];
-                var semanticsName = key.split("__semantics__")[1];
+                var semanticsName = key.split(dataNS.semantics.semPropertyPrefix)[1];
                 if(!(value === undefined || value === null || value.length <= 0) ){
                     controlSemanticsNode.attrs[semanticsName] = value;
                 }

@@ -951,22 +951,24 @@
             semantics: true,
             summary: false
         };
-        $.fn.odkControl.defaultProperties["__semantics__" + semProperty] = newProperty;
+        var prefix = odkmaker.data.semantics.semPropertyPrefix;
+        $.fn.odkControl.defaultProperties[prefix + semProperty] = newProperty;
         //Also add to the metadata controls
-        $.fn.odkControl.controlProperties["metadata"]["__semantics__" + semProperty] = newProperty;
+        $.fn.odkControl.controlProperties["metadata"][prefix + semProperty] = newProperty;
         //Deep clone before returning, we don't want a reference to the default property object flying around
         var clone = $.extend(true, {}, newProperty);
         return clone;
     }
 
     var addPropertyToActiveControls = function(property){
+        var prefix = odkmaker.data.semantics.semPropertyPrefix;
         //Add the property to all controls in the workspace except groups and branches
         $('.workspace .control').each(function(){
             var controlType = $(this).data('odkControl-type');
             if(controlType != 'group' && controlType != 'branch'){
                 //Deep clone the property, we don't want changes to one of the controls reflecting on the others 
                 var clone = $.extend(true, {}, property);
-                $(this).data('odkControl-properties')["__semantics__" + property.name] = clone;
+                $(this).data('odkControl-properties')[prefix + property.name] = clone;
             }
         })
     }
