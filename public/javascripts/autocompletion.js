@@ -24,8 +24,8 @@ var autoNS = odkmaker.namespace.load('odkmaker.autocompletion');
             /*for each item in the array...*/
             for (i = 0; i < arr.length; i++) {
                 if(arr[i].label === null || arr[i].label === ""){
-                    //We don't have a proper label so we use the value instead
-                    arr[i].label = arr[i].value;
+                    //We don't have a proper label so we use the value instead but cut any prefixes
+                    arr[i].label = arr[i].value.replace(/^_[^_]*_/, "");
                 }
                 /*check if the item starts with the same letters as the text field value:*/
                 if (arr[i].label.substr(0, val.length).toUpperCase() == val.toUpperCase()) {
