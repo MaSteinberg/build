@@ -126,11 +126,6 @@ body
     font-size: 1.2em;
     padding-bottom: 1em;
 }
-.modal ul
-{
-    font-size: 1.2em;
-    padding-bottom: 1em;
-}
 .modal .modalContents
 {
     margin: 0 1.5em 1em;
@@ -1529,6 +1524,8 @@ body > .control.last .controlFlowArrow,
 }
 .rdfDialog ul
 {
+    font-size: 1.2em;
+    padding-bottom: 1em;
     list-style-type: square;
 }
 .rdfDialog ul ul
