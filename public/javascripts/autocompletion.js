@@ -142,6 +142,20 @@
                         return $(this).data('name') == odkmaker.data.semantics.semPropertyPrefix+property;
                     });
                     $inputContainer.find('input').semanticAutocompletion(property);
+                    /*Add the terms as presets for single- & multiple-choice questions*/
+                    //We have to "encode" some special characters that are not allowed in those questions
+                    for (let i = 0; i < list.length; i++) {
+                        list[i].value = list[i].value
+                            .replace(/:/g, "__")
+                            .replace(/\//g, "--")
+                            .replace(/#/g, "_-_");
+                    }
+                    if(list.length > 0){
+                        odkmaker.options.addPreset({
+                            name: property,
+                            elements: list
+                        });
+                    }
                 },
                 error: function(jqXHR, textStatus, errorThrown ){
                     autoNS.cache[property] = [];

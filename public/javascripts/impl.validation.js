@@ -150,9 +150,9 @@
             prereq: hasOptions,
             check: function(options)
             {
-                return _.all(options, function(option) { return !hasString(option.val) || option.val.length <= 32; });
+                return _.all(options, function(option) { return !hasString(option.val) || option.val.length <= 255; });
             },
-            message: 'One or more Underlying Value is longer than the allowed maximum of 32 characters.'
+            message: 'One or more Underlying Value is longer than the allowed maximum of 255 characters.'
         },
         // checks both presence and numericness. i couldn't think of a case you wouldn't want both.
         rangeRequired: {
