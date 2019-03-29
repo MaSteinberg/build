@@ -145,10 +145,7 @@
                     /*Add the terms as presets for single- & multiple-choice questions*/
                     //We have to "encode" some special characters that are not allowed in those questions
                     for (let i = 0; i < list.length; i++) {
-                        list[i].value = list[i].value
-                            .replace(/:/g, "__")
-                            .replace(/\//g, "--")
-                            .replace(/#/g, "_-_");
+                        list[i].value = encodeUri(list[i].value);    
                     }
                     if(list.length > 0){
                         odkmaker.options.addPreset({
@@ -162,6 +159,19 @@
                 }
             });
         }
+    }
+
+    /**
+     * Encodes given URI with characters that are allowed in single- and multiple-choice questions.
+     * 
+     * @param {string} uri 
+     * 
+     * @returns {string} Encoded URI
+     */
+    function encodeUri(uri){
+        return uri.replace(/:/g, "__")
+                  .replace(/\//g, "--")
+                  .replace(/#/g, "_-_");
     }
 
     /*Function to get a list of names of all controls currently in the workspace*/
