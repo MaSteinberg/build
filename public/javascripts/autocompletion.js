@@ -105,10 +105,22 @@
     $.fn.extend({
         semanticAutocompletion: function(property){
             var autocompletionArray;
-            if(autoNS.cache[property]){
-                autocompletionArray = getControlReferenceAutocompletion().concat(autoNS.cache[property]);
+            if(property){
+                //Provide autocompletion for specific semantic property
+                if(autoNS.cache[property]){
+                    autocompletionArray = getControlReferenceAutocompletion().concat(autoNS.cache[property]);
+                } else{
+                    autocompletionArray = getControlReferenceAutocompletion();
+                }
             } else{
-                autocompletionArray = getControlReferenceAutocompletion();
+                //Provide autocompletion for all semantic properties but without control references
+                autocompletionArray = [];
+                for (const prop in autoNS.cache) {
+                    if (autoNS.cache.hasOwnProperty(prop)) {
+                        const terms = autoNS.cache[prop];
+                        autocompletionArray = autocompletionArray.concat(terms);      
+                    }
+                } 
             }
             return this.each(function(){
                 activateAutocompletion(this, autocompletionArray);
@@ -150,10 +162,15 @@
                     }
                     //Add terms to autocompletion cache. The list might intentionally be empty!
                     autoNS.cache[property] = list;
-                    //Activate autocompletion in case a property-editor is currently active
+                    //Activate autocompletion in case a property-editor is currently active...
+                    //...for semantic property fields
                     var $inputContainer = $('.semanticsAdvanced .semanticProperties .propertyItem div').filter(function(){
                         return $(this).data('name') == odkmaker.data.semantics.semPropertyPrefix+property;
                     });
+                    //...for single-/multiple-choice options
+                    var $optionsEditor = $('.optionsEditor');
+                    $optionsEditor.find('.optionsEditorValueField .editorTextfield').semanticAutocompletion();
+
                     $inputContainer.find('input').semanticAutocompletion(property);
                     //Add the terms as presets for single- & multiple-choice questions
                     if(list.length > 0){

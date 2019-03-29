@@ -256,12 +256,19 @@
 
                 $optionsList.append(newOptionRow(property, val, i, $parent));
             });
+
+            //Provide autocompletion for all "underlying value" fields
+            $editor.find('.optionsEditorValueField .editorTextfield').semanticAutocompletion();
+
             $editor.find('.addOption').click(function(event)
             {
                 event.preventDefault();
                 var newOption = { text: {}, cascade: [], val: 'untitled' };
                 property.value.push(newOption);
-                $optionsList.append(newOptionRow(property, newOption, $optionsList.children().length, $parent));
+                var $newRow = newOptionRow(property, newOption, $optionsList.children().length, $parent);
+                $optionsList.append($newRow);
+                //Provide autocompletion for the new "underlying value" field
+                $newRow.find('.optionsEditorValueField .editorTextfield').semanticAutocompletion();
                 $parent.trigger('odkControl-propertiesUpdated', [ property.id ]);
             });
 
