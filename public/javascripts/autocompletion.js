@@ -22,10 +22,6 @@
             this.parentNode.appendChild(a);
             /*for each item in the array...*/
             for (i = 0; i < arr.length; i++) {
-                if(arr[i].label === null || arr[i].label === ""){
-                    //We don't have a proper label so we use the value instead but cut any prefixes
-                    arr[i].label = arr[i].value.replace(/^_[^_]*_/, "");
-                }
                 /*check if the item starts with the same letters as the text field value:*/
                 if (arr[i].label.substr(0, val.length).toUpperCase() == val.toUpperCase()) {
                     /*create a DIV element for each matching element:*/
@@ -135,18 +131,31 @@
                 },
                 dataType: 'json',
                 success: function(list){
-                    /*Add terms to autocompletion cache. The list might intentionally be empty!*/
+                    //If a term doesn't have a label we try to use the last part of its URI
+                    for (let i = 0; i < list.length; i++) {   
+                        if(list[i].label === null || list[i].label === ""){
+                            var uri = list[i].value;
+                            var separatorIndex = Math.max(uri.lastIndexOf("#"), uri.lastIndexOf("/"));
+                            list[i].label = uri.substring(separatorIndex+1, uri.length);
+                            if(list[i].label === "" || separatorIndex == -1){
+                                //Strange URI, can't extract label, use URI as label but cut any prefixes
+                                list[i].label = list[i].value.replace(/^_[^_]*_/, "");
+                            }                          
+                        }
+                    }
+                    //We have to "encode" some special characters in the URIs
+                    //that are not allowed in single-/multiple-choice-questions
+                    for (let i = 0; i < list.length; i++) {
+                        list[i].value = encodeUri(list[i].value);  
+                    }
+                    //Add terms to autocompletion cache. The list might intentionally be empty!
                     autoNS.cache[property] = list;
-                    /*Activate autocompletion in case a property-editor is currently active*/
+                    //Activate autocompletion in case a property-editor is currently active
                     var $inputContainer = $('.semanticsAdvanced .semanticProperties .propertyItem div').filter(function(){
                         return $(this).data('name') == odkmaker.data.semantics.semPropertyPrefix+property;
                     });
                     $inputContainer.find('input').semanticAutocompletion(property);
-                    /*Add the terms as presets for single- & multiple-choice questions*/
-                    //We have to "encode" some special characters that are not allowed in those questions
-                    for (let i = 0; i < list.length; i++) {
-                        list[i].value = encodeUri(list[i].value);    
-                    }
+                    //Add the terms as presets for single- & multiple-choice questions
                     if(list.length > 0){
                         odkmaker.options.addPreset({
                             name: property,
@@ -174,7 +183,11 @@
                   .replace(/#/g, "_-_");
     }
 
-    /*Function to get a list of names of all controls currently in the workspace*/
+    /**
+     * Finds the names of all controls in the workspace.
+     * 
+     * @returns {Array<string>}
+     */
     function getAllControlNames(){
         var controlNames = [];
         /*Not using the odkmaker.data.extract function here because it does 
@@ -187,6 +200,11 @@
     }
 
 
+    /**
+     * Gets an autocompletion list containing all controls that we can reference.
+     * 
+     * @returns {Array<Object<value: Prefixed control reference, label: Label for control reference>>} Autocompletion list
+     */
     function getControlReferenceAutocompletion(){
         var controlNames = getAllControlNames();
         var autocompletion = [];
