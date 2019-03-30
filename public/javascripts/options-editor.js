@@ -88,6 +88,40 @@ var optionsNS = odkmaker.namespace.load('odkmaker.options');
         $dialog.jqmHide();
     });
 
+    /**
+     * Adds a preset from a given array
+     * 
+     * @param {object} preset Object containing the preset elements
+     * @param {string} preset.name Name of the preset to be created
+     * @param {{label: string, value: string}[]} preset.elements Array containing the preset elements with label and value
+     */
+    optionsNS.addPreset = function(preset){
+        var name = preset.name;
+        var langCodes = _.keys(odkmaker.i18n.activeLanguages());
+
+        var presetDefinition = [];
+        for (var i = 0; i < preset.elements.length; i++) {
+            var element = preset.elements[i];
+            var labels = [];
+            //For now we only consider one language
+            _.each(langCodes, function(code, idx) { 
+                labels[code] = element.label ? element.label : element.value;
+            });
+
+            presetDefinition.push({
+                text: labels,
+                val: element.value
+            });
+        } 
+
+        optionsNS.presets.push({
+            name: name,
+            options: presetDefinition
+        });
+
+        updatePresets();
+    }
+
     // presetter
     var updatePresets = function()
     {
