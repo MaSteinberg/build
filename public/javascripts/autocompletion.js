@@ -2,6 +2,7 @@
     var autoNS = odkmaker.namespace.load('odkmaker.autocompletion');
     autoNS.cache = {};
 
+
     //Adapted from https://www.w3schools.com/howto/howto_js_autocomplete.asp
     function activateAutocompletion(inp, arr, labelFields) {
         /*the autocomplete function takes two arguments,
@@ -138,7 +139,7 @@
         }
     });
 
-    /* Function to pull the autocompletion terms from the referenced aggregate server*/
+    /*Function to pull the autocompletion terms from the referenced aggregate server*/
     autoNS.getSemanticAutocompletion = function(property){
         var protocol = odkmaker.application.serverProtocol;
         var target = odkmaker.application.serverAddress;

@@ -70,6 +70,18 @@ var dataNS = odkmaker.namespace.load('odkmaker.data');
 
     var loadOne = odkmaker.data.loadOne = function(control, $parent)
     {
+        /*If the control has any semantic information attached that is currently not
+        included in the default properties (because it was not yet downloaded from aggregate) 
+        we have to add it to those default properties before doing anything else*/
+        for (const propName in control) {
+            if (control.hasOwnProperty(propName)) {                
+                if(propName.startsWith(dataNS.semantics.semPropertyPrefix)){
+                    var removedPrefix = propName.split(dataNS.semantics.semPropertyPrefix)[1];
+                    odkmaker.control.addSemanticProperty(removedPrefix);                    
+                }                
+            }
+        }
+        
         var properties = null;
         if ((control.type == 'group') || (control.type == 'branch') || (control.type == 'metadata'))
             properties = $.extend(true, {}, $.fn.odkControl.controlProperties[control.type]);
