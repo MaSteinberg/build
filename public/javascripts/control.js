@@ -16,80 +16,84 @@
     var $propertyList = $('.propertyList');
     var drawPropertyList = function($this, properties)
     {
-            // clear out and reconstruct property list
-            $propertyList.empty();
+        // clear out and reconstruct property list
+        $propertyList.empty();
 
-            var $advancedContainer = $.tag({
-                _: 'li', 
-                'class': 'advanced simpleAdvanced', 
-                contents: [
-                    { 
-                        _: 'a', 
-                        'class': 'toggle', 
-                        href: '#advanced', 
-                        contents: [
-                            { 
-                                _: 'div', 
-                                'class': 'icon' 
-                            },
-                            'Advanced'
-                        ] 
-                    },
-                    { 
-                        _: 'ul', 
-                        'class': 'advancedProperties toggleContainer' 
-                    }
-                ]
-            });
-            var $advancedList = $advancedContainer.find('.advancedProperties');
+        var $advancedContainer = $.tag({
+            _: 'li', 
+            'class': 'advanced simpleAdvanced', 
+            contents: [
+                { 
+                    _: 'a', 
+                    'class': 'toggle', 
+                    href: '#advanced', 
+                    contents: [
+                        { 
+                            _: 'div', 
+                            'class': 'icon' 
+                        },
+                        'Advanced'
+                    ] 
+                },
+                { 
+                    _: 'ul', 
+                    'class': 'advancedProperties toggleContainer' 
+                }
+            ]
+        });
+        var $advancedList = $advancedContainer.find('.advancedProperties');
 
-            var $semanticsContainer = $.tag({
-                _: 'li', 
-                'class': 'advanced semanticsAdvanced', 
-                contents: [
-                    { 
-                        _: 'a', 
-                        'class': 'toggleSemantics', 
-                        href: '#semantics', 
-                        contents: [
-                            { 
-                                _: 'div', 
-                                'class': 'icon' 
-                            },
-                            'Semantic Properties'
-                        ] 
-                    },
-                    { 
-                        _: 'ul', 
-                        'class': 'semanticProperties toggleContainer' 
-                    }
-                ]
-            });
-            var $semanticsList = $semanticsContainer.find('.semanticProperties');
+        var $semanticsContainer = $.tag({
+            _: 'li', 
+            'class': 'advanced semanticsAdvanced', 
+            contents: [
+                { 
+                    _: 'a', 
+                    'class': 'toggleSemantics', 
+                    href: '#semantics', 
+                    contents: [
+                        { 
+                            _: 'div', 
+                            'class': 'icon' 
+                        },
+                        'Semantic Properties'
+                    ] 
+                },
+                { 
+                    _: 'ul', 
+                    'class': 'semanticProperties toggleContainer' 
+                }
+            ]
+        });
+        var $semanticsList = $semanticsContainer.find('.semanticProperties');
 
-            // add our hero's properties
-            _.each(properties, function(property, name)
-            {
-                if (name === 'metadata') return;
+        // add our hero's properties
+        _.each(properties, function(property, name)
+        {
+            if (name === 'metadata') return;
 
-                //Find the correct element to append the property to
-                var appendToElement;
-                if(property.advanced === true)
-                    appendToElement = $advancedList;
-                else if(property.semantics === true)
-                    appendToElement = $semanticsList;
-                else
-                    appendToElement = $propertyList;
+            //Find the correct element to append the property to
+            var appendToElement;
+            if(property.advanced === true)
+                appendToElement = $advancedList;
+            else if(property.semantics === true)
+                appendToElement = $semanticsList;
+            else
+                appendToElement = $propertyList;
 
-                var propertyListItem = $('<li class="propertyItem"/>');
-                propertyListItem.propertyEditor(property, name, $this)
-                    .appendTo(appendToElement);
-            });
+            var propertyListItem = $('<li class="propertyItem"/>');
+            propertyListItem.propertyEditor(property, name, $this)
+                .appendTo(appendToElement);
+            //Provide autocompletion for semantics fields
+            if(property.semantics === true){
+                propertyListItem.find('input').semanticAutocompletion(property.name);
+            }
+        });
 
-            // drop in advanced
-            $propertyList.append($advancedContainer);
-            // drop in semantics
-            $propertyList.append($semanticsContainer);
+        // drop in advanced
+        $propertyList.append($advancedContainer);
+        // drop in semantics
+        $propertyList.append($semanticsContainer);
     };
     kor.events.listen({ verb: 'control-selected', callback: function(event)
     {
@@ -122,6 +126,14 @@
         $propertyList.on('click', '.toggleSemantics', function(event){
             event.preventDefault();
             $propertyList.toggleClass('showSemantics');
+            
+            /*Workaround so the input fields don't overlap with the
+            vertical scroll bar. Adapted from: 
+            https://stackoverflow.com/a/47368021 */
+            $semPropList = $propertyList.find('.semanticProperties');
+            var widthWithScrollbar = $semPropList.innerWidth();
+            var widthWithoutScrollbar = $semPropList[0]['clientWidth'];
+            $semPropList.css('margin-right', widthWithScrollbar - widthWithoutScrollbar);
         });
     });
 
@@ -455,7 +467,12 @@
                 else
                 {
                     var validations = $this.data('odkControl-validations');
-                    $this.toggleClass('error', _.any(validations, function(validation) { return validation.hasError === true; }));
+                    $this.removeClass('error warning');
+                    _.each(validations, function(validation)
+                    {
+                        if (validation.failed === true)
+                            $this.addClass((validation.isWarning === true) ? 'warning' : 'error');
+                    });
                 }
             });
 
@@ -546,6 +563,7 @@
                         value: {},
                         summary: false },
         relevance:    { name: 'Relevance',
+                        label: 'Show question if',
                         type: 'text',
                         description: 'Specify a custom expression to evaluate to determine if this field is shown.',
                         tips: [ 'The <a href="https://opendatakit.github.io/xforms-spec/#xpath-functions" rel="external">ODK XForms Functions Spec</a> may be useful.' ],
@@ -698,8 +716,14 @@
                         type: 'enum',
                         description: 'Type of media to upload.',
                         options: [ 'Image',
+                                   'New Image',
+                                   'Selfie',
+                                   'Annotate',
+                                   'Draw',
+                                   'Signature',
                                    'Audio',
-                                   'Video' ],
+                                   'Video',
+                                   'Selfie Video' ],
                         value: 'Image' } },
         inputBarcode: {},
         inputSelectOne: {
@@ -720,7 +744,7 @@
           other:      { name: 'Follow-up Question',
                         type: 'otherEditor',
                         bindAllowedIf: { 'cascading': [ null, undefined, false ] },
-                        validation: [ 'fieldListExpr' ],
+                        validation: [ 'fieldListFollowup' ],
                         description: 'Ask the following question as additional information only if a particular response is chosen.',
                         tips: [
                             'You can use this to easily prompt for more information if the user selects "Other," for example.',
@@ -803,6 +827,7 @@
                         validation: [ 'fieldListChildren' ],
                         value: false },
           relevance:  { name: 'Relevance',
+                        label: 'Show question if',
                         type: 'text',
                         description: 'Specify a custom expression to evaluate to determine if this group is shown.',
                         tips: [ 'The <a href="https://opendatakit.github.io/xforms-spec/#xpath-functions" rel="external">ODK XForms Functions Spec</a> may be useful.' ],
@@ -928,7 +953,9 @@
         }
     };
 
+    /*Function that adds semantics to default properties of all controls except group and branch*/
     var addSemanticsAsDefaultProperty = function(semProperty){
+        //Add to $.fn.odkControl.defaultProperties, they are used for "normal" controls
         var newProperty = {
             name: semProperty,
             type: "text",
@@ -937,32 +964,36 @@
             semantics: true,
             summary: false
         };
-        $.fn.odkControl.defaultProperties["__semantics__" + semProperty] = newProperty;
+        var prefix = odkmaker.data.semantics.semPropertyPrefix;
+        $.fn.odkControl.defaultProperties[prefix + semProperty] = newProperty;
+        //Also add to the metadata controls
+        $.fn.odkControl.controlProperties["metadata"][prefix + semProperty] = newProperty;
         //Deep clone before returning, we don't want a reference to the default property object flying around
         var clone = $.extend(true, {}, newProperty);
         return clone;
     }
 
     var addPropertyToActiveControls = function(property){
-        //Add the property to all controls in the workspace
+        var prefix = odkmaker.data.semantics.semPropertyPrefix;
+        //Add the property to all controls in the workspace except groups and branches
         $('.workspace .control').each(function(){
-            //Deep clone the property, we don't want changes to one of the controls reflecting on the others 
-            var clone = $.extend(true, {}, property);
-            $(this).data('odkControl-properties')["__semantics__" + property.name] = clone;
+            var controlType = $(this).data('odkControl-type');
+            if(controlType != 'group' && controlType != 'branch'){
+                //Deep clone the property, we don't want changes to one of the controls reflecting on the others 
+                var clone = $.extend(true, {}, property);
+                $(this).data('odkControl-properties')[prefix + property.name] = clone;
+            }
         })
     }
 
-    var _currentSemProperties = [];
+    controlNS.currentSemProperties = [];
 
-    //Accessor for the current semantic properties
-    $.fn.odkControl.currentSemanticProperties = function() {return _currentSemProperties; }
-
-    //Takes a list of properties and adds them to the current properties
+    //Takes a property and adds it to the current properties
     //Since the DOM (after the constructor-function) doesn't use the
     //currentSemanticProperties we have to add the properties as data-attributes manually
-    $.fn.odkControl.addSemanticProperty = function(prop){
-        if(!_currentSemProperties.includes(prop)){
-            _currentSemProperties.push(prop);
+    controlNS.addSemanticProperty = function(prop){
+        if(!controlNS.currentSemProperties.includes(prop)){
+            controlNS.currentSemProperties.push(prop);
             var newProperty = addSemanticsAsDefaultProperty(prop);
             addPropertyToActiveControls(newProperty);
         }
@@ -972,8 +1003,7 @@
     }
 
     //Add the default semantic properties to the default properties of all controls
-    //TODO ALL controls? Configure it?
-    _.each(_currentSemProperties, function(prop){
+    _.each(controlNS.currentSemProperties, function(prop){
         addSemanticsAsDefaultProperty(prop);
     });
 

@@ -150,9 +150,9 @@
             prereq: hasOptions,
             check: function(options)
             {
-                return _.all(options, function(option) { return !hasString(option.val) || option.val.length <= 32; });
+                return _.all(options, function(option) { return !hasString(option.val) || option.val.length <= 255; });
             },
-            message: 'One or more Underlying Value is longer than the allowed maximum of 32 characters.'
+            message: 'One or more Underlying Value is longer than the allowed maximum of 255 characters.'
         },
         // checks both presence and numericness. i couldn't think of a case you wouldn't want both.
         rangeRequired: {
@@ -196,8 +196,19 @@
             {
                 return _.all(parentFLs, function(fl) { return fl !== true; });
             },
-            severity: 'warning',
-            message: 'Because this control is within a single-screen group (field list), any expressions that reference other fields in the same group will not work.'
+            warning: true,
+            message: 'Because this control is within a single-screen group (field list), any expressions that reference other fields in the same group will not work as expected (at least in ODK Collect).'
+        },
+        fieldListFollowup: {
+            given: [ 'self', { scope: 'parents', property: 'fieldList' } ],
+            prereq: function(other) {
+                return _.isArray(other) && (other.length > 0);
+            },
+            check: function(other, parentFLs)
+            {
+                return _.all(parentFLs, function(fl) { return fl !== true; });
+            },
+            message: 'Because this control is within a single-screen group (field list), the follow-up question feature will not work (at least in ODK Collect).'
         }
     };
 

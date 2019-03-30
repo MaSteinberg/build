@@ -235,7 +235,9 @@ var dataNS = odkmaker.namespace.load('odkmaker.data');
             var $checked = $('.rdfDialog .propertyCheckboxes input:checked');
             $checked.each(function(){
                 //Add each checked property
-                $.fn.odkControl.addSemanticProperty($(this).val());
+                odkmaker.control.addSemanticProperty($(this).val());
+                //Load the autocompletion for the property
+                odkmaker.autocompletion.getSemanticAutocompletion($(this).val());
             });
             //Close the dialogs
             $('.rdfDialog').jqmHide();
@@ -302,17 +304,29 @@ var dataNS = odkmaker.namespace.load('odkmaker.data');
             //Get the RDF-Export's semantic properties from the specified Aggregate server       
             var protocol = $('.aggregateInstanceProtocol').val();
             var target = $('.aggregateInstanceName').val();
+            
+            //Save the protocol and target to later pull the autocompletion from the same server
+            odkmaker.application.serverProtocol = protocol;
+            odkmaker.application.serverAddress = target;
+
+            /*Show loading icon*/
+            var $loading = $('.aggregateDialog .modalLoadingOverlay');
+            $loading.show();
+
             $.ajax({
                 type: 'GET',
                 url: protocol + '://' + target + '/rdfTemplateConfig',
                 dataType: 'json',
                 success: function(rdfTemplateConfig){
+                    //Hide loading icon
+                    $loading.hide();
+
                     var displayingWarning = false;
                     //Compare the received properties with our current properties, if we're 
                     //missing at least one of them give the user the option 
                     //to add them before resuming with the upload
                     var missingList = [];
-                    var current = $.fn.odkControl.currentSemanticProperties();
+                    var current = odkmaker.control.currentSemProperties;
                     for (var property in rdfTemplateConfig.availableProperties) {
                         if (rdfTemplateConfig.availableProperties.hasOwnProperty(property)) {
                             if (!current.includes(property))
@@ -322,11 +336,13 @@ var dataNS = odkmaker.namespace.load('odkmaker.data');
                     if (missingList.length > 0) {
                         displayingWarning = true;
                         /*Display a checkbox for each missing property*/
-                        var $checkboxContainer = $('.rdfDialog .rdfMissingSemPropsContainer .propertyCheckboxes').empty();
+                        var $checkboxesContainer = $('.rdfDialog .rdfMissingSemPropsContainer .propertyCheckboxes').empty();
                         _.each(missingList, function(missing){
+                            var $checkboxContainer = $('<div></div>').addClass('checkboxContainer');
                             var $checkbox = $("<input type='checkbox'>").attr({name: 'semanticProperty', value: missing, id: missing});
                             var $checkboxLabel = $('<label>' + missing + '</label>').attr({for: missing});
                             $checkboxContainer.append($checkbox, $checkboxLabel);
+                            $checkboxesContainer.append($checkboxContainer);
                         });
 
                         /*Display a button for each template*/
@@ -339,7 +355,7 @@ var dataNS = odkmaker.namespace.load('odkmaker.data');
                                     /*Check all checkboxes that belong to properties that are either
                                     optional or required for the current template*/
                                     function check(prop){
-                                        $checkboxContainer.find('#'+prop).prop('checked', true);
+                                        $checkboxesContainer.find('#'+prop).prop('checked', true);
                                     };
                                     _.each(templateConfig.templateProperties.requiredProperties, check);
                                     _.each(templateConfig.templateProperties.optionalProperties, check);
@@ -354,11 +370,16 @@ var dataNS = odkmaker.namespace.load('odkmaker.data');
                         $('.rdfMissingSemPropsContainer').hide();
                     }
 
-                    //Check which semantic properties are missing for which template
+                    var prefix = odkmaker.data.semantics.semPropertyPrefix;
+                    //Check which semantic properties are missing for which template/control combination
                     var _missingRequiredProps = {};
                     var missingProps = {};
                     var _missingOptionalProps = {};
-                    var $activeControls = $('.workspace .control');
+                    var $activeControls = $('.workspace .control').filter(function(){
+                        //Don't consider groups and branches, they don't have semantic properties
+                        var type = $(this).data('odkControlType');
+                        return (type != 'group' && type != 'branch');
+                    });
                     /*For each template..*/
                     for(var templateName in rdfTemplateConfig.templates){
                         if(rdfTemplateConfig.templates.hasOwnProperty(templateName)){
@@ -383,7 +404,7 @@ var dataNS = odkmaker.namespace.load('odkmaker.data');
                                                 missingProps[templateName].required[propName] = [];
                                             }
 
-                                            if(!$control.data('odkControl-properties').hasOwnProperty('__semantics__'+propName)){
+                                            if(!$control.data('odkControl-properties').hasOwnProperty(prefix+propName)){
                                                 //Semantic property isn't even attached yet
                                                 missingProps[templateName].required[propName].push($control.data('odkControl-properties').name.value);
                                                 _missingRequiredProps[templateName].push({
@@ -393,7 +414,7 @@ var dataNS = odkmaker.namespace.load('odkmaker.data');
                                                 displayingWarning = true;
                                             } else {
                                                 //Semantic property is attached so we have to check if a value has been entered
-                                                var value = $control.data('odkControl-properties')['__semantics__'+propName].value;
+                                                var value = $control.data('odkControl-properties')[prefix+propName].value;
                                                 if(value == null || value.trim().length === 0){
                                                     //No value has been entered
                                                     missingProps[templateName].required[propName].push($control.data('odkControl-properties').name.value);
@@ -416,7 +437,7 @@ var dataNS = odkmaker.namespace.load('odkmaker.data');
                                                 missingProps[templateName].optional[propName] = [];
                                             }
 
-                                            if(!$control.data('odkControl-properties').hasOwnProperty('__semantics__'+propName)){
+                                            if(!$control.data('odkControl-properties').hasOwnProperty(prefix+propName)){
                                                 //Property isn't even attached
                                                 missingProps[templateName].optional[propName].push($control.data('odkControl-properties').name.value);
                                                 _missingOptionalProps[templateName].push({
@@ -426,7 +447,7 @@ var dataNS = odkmaker.namespace.load('odkmaker.data');
                                                 displayingWarning = true;
                                             } else {
                                                 //Property is attached so we have to check if a value has been entered
-                                                var value = $control.data('odkControl-properties')['__semantics__'+propName].value;
+                                                var value = $control.data('odkControl-properties')[prefix+propName].value;
                                                 if(value == null || value.trim().length === 0){
                                                     //No value has been entered
                                                     missingProps[templateName].optional[propName].push($control.data('odkControl-properties').name.value);
@@ -491,20 +512,25 @@ var dataNS = odkmaker.namespace.load('odkmaker.data');
                     }
                 },
                 error: function(jqXHR, textStatus, errorThrown ){
-                    console.log("RDF Config request failed: " + textStatus);
-                    console.log(errorThrown);
+                    console.error("RDF Configuration request failed: " + textStatus);
+                    console.error("Resuming upload without checking for missing semantics");
+                    //Hide loading icon (will be reactivated by triggerFormUpload())
+                    $loading.hide();
                     //Resume with usual upload, this error means the aggregate server
                     //either doesn't support the RDF-export or it's broken
-                    triggerFormUpload(protocol, target);
-                }
+                    triggerFormUpload();
+                },
+                timeout: 5000
             });
         });
 
-        var triggerFormUpload = function(protocol, target){
+        var triggerFormUpload = function(){
             var $loading = $('.aggregateDialog .modalLoadingOverlay');
             $loading.show();
             $('.aggregateDialog .errorMessage').empty().hide();
-
+            
+            var protocol = $('.aggregateInstanceProtocol').val();
+            var target = $('.aggregateInstanceName').val();
             $.ajax({
                 url: '/aggregate/post',
                 dataType: 'json',

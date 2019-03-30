@@ -126,11 +126,6 @@ body
     font-size: 1.2em;
     padding-bottom: 1em;
 }
-.modal ul
-{
-    font-size: 1.2em;
-    padding-bottom: 1em;
-}
 .modal .modalContents
 {
     margin: 0 1.5em 1em;
@@ -167,26 +162,6 @@ body
     left: calc(50% - 1.5em);
     position: absolute;
     top: 3em;
-}
-
-.rdfDialog{
-    max-height: 60%;
-    overflow-y: auto;
-}
-
-.rdfDialog ul
-{
-    list-style-type: square;
-}
-
-.rdfDialog ul ul
-{
-    list-style-type: disc;
-}
-
-.rdfDialog ul > li
-{
-    padding-left: 2.0em;
 }
 
 #templates
@@ -892,6 +867,14 @@ body
 .control.group:hover > .controlFlowArrow { border-top-color: #5d765c; }
 .control.group:hover > .groupFooter { background-color: #5d765c; }
 
+.control.warning > .controlInfo, .control.group.warning > .controlInfo { background-color: #95762d; }
+.control.warning > .controlFlowArrow, .control.group.warning > .controlFlowArrow { border-top-color: #796331; }
+.control.warning > .groupFooter, .control.group.warning > .groupFooter { background-color: #796331; }
+
+.control.warning:hover > .controlInfo { background-color: #a18339; }
+.control.warning:hover > .controlFlowArrow { border-top-color: #8a6d28; }
+.control.warning:hover > .groupFooter { background-color: #8a6d28; }
+
 .control.error > .controlInfo, .control.group.error > .controlInfo { background-color: #a20f0f; }
 .control.error > .controlFlowArrow, .control.group.error > .controlFlowArrow { border-top-color: #880d0d; }
 .control.error > .groupFooter, .control.group.error > .groupFooter { background-color: #880d0d; }
@@ -1026,6 +1009,10 @@ body > .control.last .controlFlowArrow,
 {
     color: #a20f0f;
 }
+.propertiesPane .propertyList li.warning
+{
+    background-color: #fffebe;
+}
 .propertiesPane .propertyList li.advanced
 {
     border-top: 1px dashed #aaa;
@@ -1141,12 +1128,13 @@ body > .control.last .controlFlowArrow,
 }
 .propertiesPane .propertyList.showAdvanced .advancedProperties
 {
-    max-height: 20em
+    max-height: 20em;
 }
 
 .propertiesPane .propertyList.showSemantics .semanticProperties
 {
-    max-height: 20em
+    max-height: 20em;
+    overflow-y: scroll;
 }
 
 .propertiesPane .propertyList li .optionsList
@@ -1188,9 +1176,13 @@ body > .control.last .controlFlowArrow,
     text-indent: 0;
     top: 0;
 }
-.propertiesPane .propertyList li .errorList li
+.propertiesPane .propertyList li.error .errorList li
 {
     color: #a20f0f;
+}
+.propertiesPane .propertyList li.warning .errorList li
+{
+    color: #746854;
 }
 
 .propertiesPane .propertyList li.advanced .icon
@@ -1524,6 +1516,66 @@ body > .control.last .controlFlowArrow,
 .loadingScreen .status
 {
     padding-top: 1em;
+}
+
+.rdfDialog{
+    max-height: 60%;
+    overflow-y: auto;
+}
+.rdfDialog ul
+{
+    font-size: 1.2em;
+    padding-bottom: 1em;
+    list-style-type: square;
+}
+.rdfDialog ul ul
+{
+    list-style-type: disc;
+}
+.rdfDialog ul > li
+{
+    padding-left: 2.0em;
+}
+.rdfDialog .modalButton
+{
+    display: inline-block;
+}
+.rdfDialog .modalContents > div
+{
+    margin-top: 2.0em;
+}
+
+/*************************************************************
+ * AUTOCOMPLETION adapted from                               *
+ * https://www.w3schools.com/howto/howto_js_autocomplete.asp *
+ *************************************************************/
+.autocomplete-items {
+    border: 1px solid #d4d4d4;
+    border-bottom: none;
+    border-top: none;
+    z-index: 99;
+    /*position the autocomplete items to be the same width as the container:*/
+    top: 100%;
+    left: 0;
+    right: 0;
+    /*add a scrollbar if we have too many items*/
+    max-height: 10em;
+    overflow-y: scroll;
+}
+.autocomplete-items div {
+    padding: 10px;
+    cursor: pointer;
+    background-color: #fff;
+    border-bottom: 1px solid #d4d4d4;
+}
+.autocomplete-items div:hover {
+    /*when hovering an item:*/
+    background-color: #e9e9e9;
+}
+.autocomplete-active {
+    /*when navigating through the items using the arrow keys:*/
+    background-color: DodgerBlue !important;
+    color: #ffffff;
 }
 
 /***********

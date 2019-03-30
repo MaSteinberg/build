@@ -9,6 +9,13 @@ var dataNS = odkmaker.namespace.load('odkmaker.data');
 
 ;(function($)
 {
+    /*Prefixes for semantics*/
+    dataNS.semantics = {
+        ontoReferencePrefix : "_onto_",
+        columnReferencePrefix : "_col_",
+        semPropertyPrefix : "__semantics__"
+    }
+
     // gets just the pure data for any one control
     var getDataRepresentation = odkmaker.data.extractOne = function($control)
     {
@@ -61,7 +68,7 @@ var dataNS = odkmaker.namespace.load('odkmaker.data');
         return title;
     };
 
-    var loadOne = odkmaker.data.loadOne = function(control)
+    var loadOne = odkmaker.data.loadOne = function(control, $parent)
     {
         var properties = null;
         if ((control.type == 'group') || (control.type == 'branch') || (control.type == 'metadata'))
@@ -81,15 +88,21 @@ var dataNS = odkmaker.namespace.load('odkmaker.data');
             .addClass(control.type)
             .odkControl(control.type, null, properties);
 
+        if ($parent != null)
+        {
+            $result.appendTo($parent);
+            $result.trigger('odkControl-added');
+        }
+
         if (control.type == 'group')
             loadMany($result.find('.workspaceInner'), control.children);
 
         return $result;
     };
 
-    var loadMany = function($root, controls)
+    var loadMany = function($parent, controls)
     {
-        _.each(controls, function(control) { loadOne(control).appendTo($root).trigger('odkControl-added'); });
+        _.each(controls, function(control) { loadOne(control, $parent); });
     };
     // forms without a version are assumed to be version 0. any form at a version less than
     // the current will be upgraded. to define an upgrade, add an upgrade object to any module
@@ -148,6 +161,25 @@ var dataNS = odkmaker.namespace.load('odkmaker.data');
         'Horizontal Layout': 'horizontal',
         'Vertical Slider': 'vertical',
         'Picker': 'picker'
+    };
+    var mediaTypes = {
+         'Image': 'image/*',
+         'New Image': 'image/*',
+         'Selfie': 'image/*',
+         'Annotate': 'image/*',
+         'Draw': 'image/*',
+         'Signature': 'image/*',
+         'Audio': 'audio/*',
+         'Video': 'video/*',
+         'Selfie Video': 'video/*'
+    };
+    var mediaAppearances = {
+         'New Image': 'new',
+         'Signature': 'signature',
+         'Annotate': 'annotate',
+         'Draw': 'draw',
+         'Selfie': 'new-front',
+         'Selfie Video': 'new-front'
     };
     var addTranslation = function(obj, itextPath, translations)
     {
@@ -229,7 +261,7 @@ var dataNS = odkmaker.namespace.load('odkmaker.data');
             instance.children.push(instanceTag);
             var bodyTag = {
                 name: 'group',
-                attrs: {},
+                attrs: { ref: xpath + control.name },
                 children: []
             };
             body.children.push(bodyTag);
@@ -510,10 +542,16 @@ var dataNS = odkmaker.namespace.load('odkmaker.data');
         // numeric/date range
         if ((control.range !== undefined) && (control.range !== false))
         {
-            if (!$.isBlank(control.range.min))
-                constraint.push('. &gt;' + (control.range.minInclusive ? '= ' : ' ') + xmlValue(control.range.min));
-            if (!$.isBlank(control.range.max))
-                constraint.push('. &lt;' + (control.range.maxInclusive ? '= ' : ' ') + xmlValue(control.range.max));
+            if (!$.isBlank(control.range.min)) {
+                var min = xmlValue(control.range.min);
+                if (control.type === 'inputDate') min = 'date(' + min + ')';
+                constraint.push('. &gt;' + (control.range.minInclusive ? '= ' : ' ') + min);
+            }
+            if (!$.isBlank(control.range.max)) {
+                var max = xmlValue(control.range.max);
+                if (control.type === 'inputDate') max = 'date(' + max + ')';
+                constraint.push('. &lt;' + (control.range.maxInclusive ? '= ' : ' ') + max);
+            }
 
             invalidText = 'Value must be between ' + $.emptyString(control.range.min, 'anything') + ' and ' + $.emptyString(control.range.max, 'anything');
         }
@@ -530,8 +568,11 @@ var dataNS = odkmaker.namespace.load('odkmaker.data');
         }
 
         // media kind
-        if (control.type == 'inputMedia')
-            bodyTag.attrs.mediatype = control.kind.toLowerCase() + '/*';
+        if (control.type == 'inputMedia') {
+            bodyTag.attrs.mediatype = mediaTypes[control.kind];
+            if (mediaAppearances[control.kind] != null)
+                bodyTag.attrs.appearance = mediaAppearances[control.kind];
+        }
 
         // appearance
         if (control.appearance != null)
@@ -779,14 +820,26 @@ var dataNS = odkmaker.namespace.load('odkmaker.data');
             parseControlSemantics(control, semanticsRoot);
             
             //Remove the semantics for the serialization so they are not added to the normal XForms-description
-            var controlWithoutSemantics = _.omit(control, function(value, key, object){
-                return key.startsWith("__semantics__");
-            });
+            var controlWithoutSemantics = omitSemanticProperties(control);
             parseControl(controlWithoutSemantics, '/data/', instanceHead, translations, model, body);
         });
 
         return root;
     };
+
+    var omitSemanticProperties = function(control){
+        var controlWithoutSemantics = _.omit(control, function(value, key, object){
+            return key.startsWith(dataNS.semantics.semPropertyPrefix);
+        });
+        //Deal with nested controls
+        if(control.children){
+            for (let i = 0; i < control.children.length; i++) {
+                const child = control.children[i];
+                control.children[i] = omitSemanticProperties(child);
+            }
+        }
+        return controlWithoutSemantics;
+    }
 
     var parseControlSemantics = function(control, semanticsRoot){
         //Create a semantics node for this control element
@@ -799,13 +852,20 @@ var dataNS = odkmaker.namespace.load('odkmaker.data');
         semanticsRoot.children.push(controlSemanticsNode);
         //For each key that contains semantics information add an attribute to the node
         for(var key in control){
-            if(key.startsWith("__semantics__")){
+            if(key.startsWith(dataNS.semantics.semPropertyPrefix)){
                 var value = control[key];
-                var semanticsName = key.split("__semantics__")[1];
+                var semanticsName = key.split(dataNS.semantics.semPropertyPrefix)[1];
                 if(!(value === undefined || value === null || value.length <= 0) ){
                     controlSemanticsNode.attrs[semanticsName] = value;
                 }
             }
+        }
+
+        //Groups might have children which can have semantics that have to be parsed
+        if(control.type == 'group'){
+            _.forEach(control.children, function(child){
+                parseControlSemantics(child, semanticsRoot, true);
+            });
         }
     }
 
