@@ -258,7 +258,11 @@
             });
 
             //Provide autocompletion for all "underlying value" fields
-            $editor.find('.optionsEditorValueField .editorTextfield').semanticAutocompletion();
+            $optionsList.children("li").each(function(){
+                $this = $(this);
+                var translationFields = $this.find(".translations .editorTextfield");
+                $this.find('.optionsEditorValueField .editorTextfield').semanticAutocompletion("", translationFields);
+            });
 
             $editor.find('.addOption').click(function(event)
             {
@@ -268,7 +272,8 @@
                 var $newRow = newOptionRow(property, newOption, $optionsList.children().length, $parent);
                 $optionsList.append($newRow);
                 //Provide autocompletion for the new "underlying value" field
-                $newRow.find('.optionsEditorValueField .editorTextfield').semanticAutocompletion();
+                var translationFields = $newRow.find('.translations .editorTextfield').get();
+                $newRow.find('.optionsEditorValueField .editorTextfield').semanticAutocompletion("", translationFields);
                 $parent.trigger('odkControl-propertiesUpdated', [ property.id ]);
             });
 

@@ -100,7 +100,7 @@ var optionsNS = odkmaker.namespace.load('odkmaker.options');
         var langCodes = _.keys(odkmaker.i18n.activeLanguages());
 
         var presetDefinition = [];
-        for (let i = 0; i < preset.elements.length; i++) {
+        for (var i = 0; i < preset.elements.length; i++) {
             var element = preset.elements[i];
             var labels = [];
             //For now we only consider one language

@@ -3,7 +3,7 @@
     autoNS.cache = {};
 
     //Adapted from https://www.w3schools.com/howto/howto_js_autocomplete.asp
-    function activateAutocompletion(inp, arr) {
+    function activateAutocompletion(inp, arr, labelFields) {
         /*the autocomplete function takes two arguments,
         the text field element and an array of possible autocompleted values:*/
         var currentFocus;
@@ -30,17 +30,27 @@
                     b.innerHTML = "<strong>" + arr[i].label.substr(0, val.length) + "</strong>";
                     b.innerHTML += arr[i].label.substr(val.length);
                     /*insert a input field that will hold the current array item's value:*/
-                    b.innerHTML += "<input type='hidden' value='" + arr[i].value + "'>";
+                    //Store the label in a data-attribute, we might need it later
+                    b.innerHTML += "<input type='hidden' value='" + arr[i].value + 
+                                    "' data-label='" + arr[i].label + "'>";
                     /*execute a function when someone clicks on the item value (DIV element):*/
                         b.addEventListener("click", function(e) {
-                        /*insert the value for the autocomplete text field:*/
-                        inp.value = this.getElementsByTagName("input")[0].value;
-                        //Trigger the input event so data-properties are updated properly
-                        $(inp).trigger('input');
-                        /*close the list of autocompleted values,
-                        (or any other open lists of autocompleted values:*/
-                        closeAllLists();
-                    });
+                            /*insert the value for the autocomplete text field:*/
+                            var selected = this.getElementsByTagName("input")[0];
+                            inp.value = selected.value;
+                            //Trigger the keyup event so data-properties are updated properly
+                            $(inp).trigger('keyup');
+                            //If we have some label fields, fill them with the label
+                            if(labelFields && labelFields.length > 0){
+                                for (var i = 0; i < labelFields.length; i++) {
+                                    labelFields[i].value = selected.getAttribute("data-label");
+                                    $(labelFields[i]).trigger('keyup');                                    
+                                }
+                            }
+                            /*close the list of autocompleted values,
+                            (or any other open lists of autocompleted values:*/
+                            closeAllLists();
+                        });
                     a.appendChild(b);
                 }
             }
@@ -103,7 +113,7 @@
     } 
 
     $.fn.extend({
-        semanticAutocompletion: function(property){
+        semanticAutocompletion: function(property, labelFields){
             var autocompletionArray;
             if(property){
                 //Provide autocompletion for specific semantic property
@@ -123,7 +133,7 @@
                 } 
             }
             return this.each(function(){
-                activateAutocompletion(this, autocompletionArray);
+                activateAutocompletion(this, autocompletionArray, labelFields);
             });
         }
     });
@@ -144,7 +154,7 @@
                 dataType: 'json',
                 success: function(list){
                     //If a term doesn't have a label we try to use the last part of its URI
-                    for (let i = 0; i < list.length; i++) {   
+                    for (var i = 0; i < list.length; i++) {   
                         if(list[i].label === null || list[i].label === ""){
                             var uri = list[i].value;
                             var separatorIndex = Math.max(uri.lastIndexOf("#"), uri.lastIndexOf("/"));
@@ -157,7 +167,7 @@
                     }
                     //We have to "encode" some special characters in the URIs
                     //that are not allowed in single-/multiple-choice-questions
-                    for (let i = 0; i < list.length; i++) {
+                    for (var i = 0; i < list.length; i++) {
                         list[i].value = encodeUri(list[i].value);  
                     }
                     //Add terms to autocompletion cache. The list might intentionally be empty!
@@ -168,8 +178,12 @@
                         return $(this).data('name') == odkmaker.data.semantics.semPropertyPrefix+property;
                     });
                     //...for single-/multiple-choice options
-                    var $optionsEditor = $('.optionsEditor');
-                    $optionsEditor.find('.optionsEditorValueField .editorTextfield').semanticAutocompletion();
+                    var $optionsList = $('.optionsEditor .optionsList');
+                    $optionsList.children("li").each(function(){
+                        $this = $(this);
+                        var translationFields = $this.find(".translations .editorTextfield");
+                        $this.find('.optionsEditorValueField .editorTextfield').semanticAutocompletion("", translationFields);
+                    });
 
                     $inputContainer.find('input').semanticAutocompletion(property);
                     //Add the terms as presets for single- & multiple-choice questions
