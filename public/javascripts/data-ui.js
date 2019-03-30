@@ -312,7 +312,14 @@ var dataNS = odkmaker.namespace.load('odkmaker.data');
             /*Show loading icon*/
             var $loading = $('.aggregateDialog .modalLoadingOverlay');
             $loading.show();
+ 
+            //Load/Refresh autocompletion for all active semantic properties
+            for (let i = 0; i < odkmaker.control.currentSemProperties.length; i++) {
+                const propName = odkmaker.control.currentSemProperties[i];
+                odkmaker.autocompletion.getSemanticAutocompletion(propName);
+            }    
 
+            //Check for semantic requirements that the Aggregate server displays
             $.ajax({
                 type: 'GET',
                 url: protocol + '://' + target + '/rdfTemplateConfig',
