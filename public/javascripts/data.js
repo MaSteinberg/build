@@ -755,7 +755,7 @@ var dataNS = odkmaker.namespace.load('odkmaker.data');
                 'xmlns:h': 'http://www.w3.org/1999/xhtml',
                 'xmlns:xsd': 'http://www.w3.org/2001/XMLSchema',
                 'xmlns:jr': 'http://openrosa.org/javarosa',
-                'xmlns:sem': 'http://example.org'
+                'xmlns:sem': 'http://annotation'
             },
             children: [
                 {   name: 'h:head',
