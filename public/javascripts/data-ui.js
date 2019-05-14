@@ -232,9 +232,9 @@ var dataNS = odkmaker.namespace.load('odkmaker.data');
 
 
         /*Button to add checked semantic properties to the system*/
-        $('.rdfDialog .addSemPropsButton').click(function (event) {
+        $('.semPropDialog .addSemPropsButton').click(function (event) {
             //Grab the properties (checkboxes) that were checked by the user
-            var $checked = $('.rdfDialog .propertyCheckboxes input:checked');
+            var $checked = $('.semPropDialog .propertyCheckboxes input:checked');
             $checked.each(function(){
                 //Add each checked property
                 odkmaker.control.addSemanticProperty($(this).val());
@@ -242,39 +242,37 @@ var dataNS = odkmaker.namespace.load('odkmaker.data');
                 odkmaker.autocompletion.getSemanticAutocompletion($(this).val());
             });
             //Close the dialogs
-            $('.rdfDialog').jqmHide();
+            $('.semPropDialog').jqmHide();
             $('.aggregateDialog').jqmHide();
         });
 
         /*Button to resume the upload without adding any semantic properties*/
-        $('.rdfDialog .resumeUploadButton').click(function(event){
-            $('.rdfDialog').jqmHide();
+        $('.semPropDialog .resumeUploadButton').click(function(event){
+            $('.semPropDialog').jqmHide();
             triggerFormUpload();
         });
 
         /*Button to cancel the upload*/
-        $('.rdfDialog .cancelUploadButton').click(function(event){
+        $('.semPropDialog .cancelUploadButton').click(function(event){
             $('.aggregateDialog').jqmHide();
         });
 
         /*Select all semantic property checkboxes*/
-        $('.rdfDialog .checkboxControl .checkboxControlSelectAll').click(function(event){
-            $('.rdfDialog .propertyCheckboxes input').prop('checked', true);
+        $('.semPropDialog .checkboxControl .checkboxControlSelectAll').click(function(event){
+            $('.semPropDialog .propertyCheckboxes input').prop('checked', true);
         });
 
         /*Deselect all semantic property checkboxes*/
-        $('.rdfDialog .checkboxControl .checkboxControlDeselectAll').click(function(event){
-            $('.rdfDialog .propertyCheckboxes input').prop('checked', false);
+        $('.semPropDialog .checkboxControl .checkboxControlDeselectAll').click(function(event){
+            $('.semPropDialog .propertyCheckboxes input').prop('checked', false);
         });
 
         /*Export-button after an Aggregate URL was entered*/
         $('.aggregateDialog .aggregateExportButton').click(function (event) {
             event.preventDefault();
 
-            $('.aggregateDialog .rdfWarningMessage').hide();
-
             //Reset lists of missing properties
-            $('.rdfDialog ul').empty();            
+            $('.semPropDialog ul').empty();            
 
             //Get the Template-Export's semantic properties from the specified Aggregate server       
             var protocol = $('.aggregateInstanceProtocol').val();
@@ -299,7 +297,7 @@ var dataNS = odkmaker.namespace.load('odkmaker.data');
                 type: 'GET',
                 url: protocol + '://' + target + '/exportTemplateConfig',
                 dataType: 'json',
-                success: function(rdfTemplateConfig){
+                success: function(templateConfig){
                     //Hide loading icon
                     $loading.hide();
 
@@ -309,8 +307,8 @@ var dataNS = odkmaker.namespace.load('odkmaker.data');
                     //to add them before resuming with the upload
                     var missingList = [];
                     var current = odkmaker.control.currentSemProperties;
-                    for (var property in rdfTemplateConfig.availableProperties) {
-                        if (rdfTemplateConfig.availableProperties.hasOwnProperty(property)) {
+                    for (var property in templateConfig.availableProperties) {
+                        if (templateConfig.availableProperties.hasOwnProperty(property)) {
                             if (!current.includes(property))
                                 missingList.push(property);
                         }
@@ -318,7 +316,7 @@ var dataNS = odkmaker.namespace.load('odkmaker.data');
                     if (missingList.length > 0) {
                         displayingWarning = true;
                         /*Display a checkbox for each missing property*/
-                        var $checkboxesContainer = $('.rdfDialog .rdfMissingSemPropsContainer .propertyCheckboxes').empty();
+                        var $checkboxesContainer = $('.semPropDialog .missingSemPropsContainer .propertyCheckboxes').empty();
                         _.each(missingList, function(missing){
                             var $checkboxContainer = $('<div></div>').addClass('checkboxContainer');
                             var $checkbox = $("<input type='checkbox'>").attr({name: 'semanticProperty', value: missing, id: missing});
@@ -328,8 +326,8 @@ var dataNS = odkmaker.namespace.load('odkmaker.data');
                         });
 
                         /*Display a button for each template*/
-                        var $templateButtonContainer = $('.rdfDialog .rdfMissingSemPropsContainer .templateButtons').empty();
-                        _.each(rdfTemplateConfig.templates, function(templateConfig, templateIdentifier){
+                        var $templateButtonContainer = $('.semPropDialog .missingSemPropsContainer .templateButtons').empty();
+                        _.each(templateConfig.templates, function(templateConfig, templateIdentifier){
                             $button = $('<a />', {
                                 class: 'modalButton',
                                 text: templateConfig.displayName,
@@ -347,9 +345,9 @@ var dataNS = odkmaker.namespace.load('odkmaker.data');
                         });
                         
                         /*Make container visible*/
-                        $('.rdfDialog .rdfMissingSemPropsContainer').show();
+                        $('.semPropDialog .missingSemPropsContainer').show();
                     } else{
-                        $('.rdfMissingSemPropsContainer').hide();
+                        $('.missingSemPropsContainer').hide();
                     }
 
                     var prefix = odkmaker.data.semantics.semPropertyPrefix;
@@ -361,13 +359,13 @@ var dataNS = odkmaker.namespace.load('odkmaker.data');
                         return (type != 'group' && type != 'branch');
                     });
                     /*For each template..*/
-                    for(var templateName in rdfTemplateConfig.templates){
-                        if(rdfTemplateConfig.templates.hasOwnProperty(templateName)){
+                    for(var templateName in templateConfig.templates){
+                        if(templateConfig.templates.hasOwnProperty(templateName)){
                             missingProps[templateName] = {
                                 required: {},
                                 optional: {}
                             };
-                            var templateProperties = rdfTemplateConfig.templates[templateName].templateProperties;
+                            var templateProperties = templateConfig.templates[templateName].templateProperties;
                             /*If the template has some required/optional properties*/
                             if(templateProperties){
                                 /*For each control...*/
@@ -432,7 +430,7 @@ var dataNS = odkmaker.namespace.load('odkmaker.data');
                         var missingRequired = missingProps[templateName].required;
                         var missingOptional = missingProps[templateName].optional;
 
-                        var $missingRequirementsList = $('.rdfMissingRequirementsList');
+                        var $missingRequirementsList = $('.missingRequirementsList');
                         for(var propName in missingRequired){
                             if(missingRequired[propName].length > 0){
                                 var controlListString = missingRequired[propName].map(function(controlName){
@@ -447,7 +445,7 @@ var dataNS = odkmaker.namespace.load('odkmaker.data');
                                     '</li>');
                             }
                         }
-                        var $missingOptionalsList = $('.rdfMissingOptionalsList');
+                        var $missingOptionalsList = $('.missingOptionalsList');
                         for(var propName in missingOptional){
                             if(missingOptional[propName].length > 0){
                                 var controlListString = missingOptional[propName].map(function(controlName){
@@ -465,19 +463,19 @@ var dataNS = odkmaker.namespace.load('odkmaker.data');
                     }
 
                     if(displayingWarning){
-                        $('.rdfDialog').jqmShow();
+                        $('.semPropDialog').jqmShow();
                     } else{
                         //Everything is okay, resume with the actual upload  
                         triggerFormUpload();
                     }
                 },
                 error: function(jqXHR, textStatus, errorThrown ){
-                    console.error("RDF Configuration request failed: " + textStatus);
+                    console.error("Template configuration request failed: " + textStatus);
                     console.error("Resuming upload without checking for missing semantics");
                     //Hide loading icon (will be reactivated by triggerFormUpload())
                     $loading.hide();
                     //Resume with usual upload, this error means the aggregate server
-                    //either doesn't support the RDF-export or it's broken
+                    //either doesn't support the template-export or it's broken
                     triggerFormUpload();
                 },
                 timeout: 5000

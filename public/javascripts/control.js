@@ -959,7 +959,7 @@
         var newProperty = {
             name: semProperty,
             type: "text",
-            description: "Information about the " + semProperty + " is helpful for the RDF-Export of ODK Aggregate",
+            description: "Information about the " + semProperty + " is helpful for the template-based export of ODK Aggregate",
             value: "",
             semantics: true,
             summary: false

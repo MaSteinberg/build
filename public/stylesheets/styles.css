@@ -1518,29 +1518,29 @@ body > .control.last .controlFlowArrow,
     padding-top: 1em;
 }
 
-.rdfDialog{
+.semPropDialog{
     max-height: 60%;
     overflow-y: auto;
 }
-.rdfDialog ul
+.semPropDialog ul
 {
     font-size: 1.2em;
     padding-bottom: 1em;
     list-style-type: square;
 }
-.rdfDialog ul ul
+.semPropDialog ul ul
 {
     list-style-type: disc;
 }
-.rdfDialog ul > li
+.semPropDialog ul > li
 {
     padding-left: 2.0em;
 }
-.rdfDialog .modalButton
+.semPropDialog .modalButton
 {
     display: inline-block;
 }
-.rdfDialog .modalContents > div
+.semPropDialog .modalContents > div
 {
     margin-top: 2.0em;
 }
