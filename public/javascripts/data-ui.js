@@ -230,6 +230,8 @@ var dataNS = odkmaker.namespace.load('odkmaker.data');
             $form.submit();
         });
 
+
+        /*Button to add checked semantic properties to the system*/
         $('.rdfDialog .addSemPropsButton').click(function (event) {
             //Grab the properties (checkboxes) that were checked by the user
             var $checked = $('.rdfDialog .propertyCheckboxes input:checked');
@@ -244,64 +246,37 @@ var dataNS = odkmaker.namespace.load('odkmaker.data');
             $('.aggregateDialog').jqmHide();
         });
 
+        /*Button to resume the upload without adding any semantic properties*/
         $('.rdfDialog .resumeUploadButton').click(function(event){
             $('.rdfDialog').jqmHide();
             triggerFormUpload();
         });
 
+        /*Button to cancel the upload*/
         $('.rdfDialog .cancelUploadButton').click(function(event){
             $('.aggregateDialog').jqmHide();
         });
 
+        /*Select all semantic property checkboxes*/
         $('.rdfDialog .checkboxControl .checkboxControlSelectAll').click(function(event){
             $('.rdfDialog .propertyCheckboxes input').prop('checked', true);
         });
 
+        /*Deselect all semantic property checkboxes*/
         $('.rdfDialog .checkboxControl .checkboxControlDeselectAll').click(function(event){
             $('.rdfDialog .propertyCheckboxes input').prop('checked', false);
         });
 
+        /*Export-button after an Aggregate URL was entered*/
         $('.aggregateDialog .aggregateExportButton').click(function (event) {
             event.preventDefault();
 
             $('.aggregateDialog .rdfWarningMessage').hide();
 
             //Reset lists of missing properties
-            $('.rdfDialog ul').empty();
+            $('.rdfDialog ul').empty();            
 
-            /*var rdfTemplateConfig = {
-                "availableProperties": {
-                    "Creator": {
-                        "Endpoint": null,
-                        "Query": null
-                    },
-                    "Unit": {
-                        "Endpoint": "http://192.168.0.8:7200/repositories/om",
-                        "Query": "PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>\nPREFIX : <http://ecoinformatics.org/oboe/oboe.1.2/oboe.owl#>\nPREFIX om: <http://www.ontology-of-units-of-measure.org/resource/om-2/>\nPREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>\n\nSELECT DISTINCT ?uri ?displayName\nWHERE {\n    ?uri rdf:type om:Unit .\n    OPTIONAL{\n        ?uri rdfs:label ?displayName .\n     \tFILTER (lang(?displayName) = 'en')\n    }\n}"
-                    },
-                    "Characteristic": {
-                        "Endpoint": "http://192.168.0.8:7200/repositories/oboe",
-                        "Query": "PREFIX oboe-core: <http://ecoinformatics.org/oboe/oboe.1.2/oboe-core.owl#>\nPREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>\nPREFIX : <http://ecoinformatics.org/oboe/oboe.1.2/oboe.owl#>\nSELECT DISTINCT ?uri ?displayName\nWHERE {\n\t?uri rdfs:subClassOf oboe-core:Characteristic .\n    FILTER NOT EXISTS {\n        ?sub rdfs:subClassOf ?uri .\n    }\n    OPTIONAL{\n        ?uri rdfs:label ?displayName\n    }\n}"
-                    }
-                },
-                "templates": {
-                    "oboe": {
-                        "displayName": "Extensible Observation Ontology",
-                        "templateProperties": {
-                            "optionalProperties": [
-                                "Creator"
-                            ],
-                            "requiredProperties": [
-                                "Characteristic",
-                                "Unit"
-                            ]
-                        }
-                    }
-                }
-            };*/
-            
-
-            //Get the RDF-Export's semantic properties from the specified Aggregate server       
+            //Get the Template-Export's semantic properties from the specified Aggregate server       
             var protocol = $('.aggregateInstanceProtocol').val();
             var target = $('.aggregateInstanceName').val();
             
@@ -319,10 +294,10 @@ var dataNS = odkmaker.namespace.load('odkmaker.data');
                 odkmaker.autocompletion.getSemanticAutocompletion(propName);
             }    
 
-            //Check for semantic requirements that the Aggregate server displays
+            //Check for semantic requirements that the Aggregate server announces
             $.ajax({
                 type: 'GET',
-                url: protocol + '://' + target + '/rdfTemplateConfig',
+                url: protocol + '://' + target + '/exportTemplateConfig',
                 dataType: 'json',
                 success: function(rdfTemplateConfig){
                     //Hide loading icon
@@ -480,7 +455,6 @@ var dataNS = odkmaker.namespace.load('odkmaker.data');
                         var $missingRequirementsList = $('.rdfMissingRequirementsList');
                         for(var propName in missingRequired){
                             if(missingRequired[propName].length > 0){
-                                //TODO Inefficient?
                                 var controlListString = missingRequired[propName].map(function(controlName){
                                     return '<li>' + controlName + '</li>';
                                 }).join('');
@@ -496,7 +470,6 @@ var dataNS = odkmaker.namespace.load('odkmaker.data');
                         var $missingOptionalsList = $('.rdfMissingOptionalsList');
                         for(var propName in missingOptional){
                             if(missingOptional[propName].length > 0){
-                                //TODO Probably inefficient
                                 var controlListString = missingOptional[propName].map(function(controlName){
                                     return '<li>' + controlName + '</li>';
                                 }).join('');
