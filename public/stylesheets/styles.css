@@ -1094,6 +1094,12 @@ body > .control.last .controlFlowArrow,
     font-size: 1.4em;
     letter-spacing: -1px;
 }
+.propertiesPane .propertyList li.advanced a.toggleSemantics
+{
+    color: #444;
+    font-size: 1.4em;
+    letter-spacing: -1px;
+}
 .propertiesPane .advancedProperties
 {
     max-height: 0;
@@ -1105,13 +1111,30 @@ body > .control.last .controlFlowArrow,
 {
     padding-left: 1em;
 }
+.propertiesPane .semanticProperties
+{
+    max-height: 0;
+    overflow: hidden;
+    padding-top: 1em;
+    transition: 0.4s max-height;
+}
+.propertiesPane .semanticProperties .propertyItem
+{
+    padding-left: 1em;
+}
 .propertiesPane .propertyList input[type="text"]
 {
     width: calc(100% - 1em);
 }
 .propertiesPane .propertyList.showAdvanced .advancedProperties
 {
-    max-height: 20em
+    max-height: 20em;
+}
+
+.propertiesPane .propertyList.showSemantics .semanticProperties
+{
+    max-height: 20em;
+    overflow-y: scroll;
 }
 
 .propertiesPane .propertyList li .optionsList
@@ -1171,7 +1194,11 @@ body > .control.last .controlFlowArrow,
 {
     content: '\e901';
 }
-.propertiesPane .propertyList.showAdvanced li.advanced .icon:before
+.propertiesPane .propertyList.showAdvanced li.advanced.simpleAdvanced .icon:before
+{
+    content: '\e900';
+}
+.propertiesPane .propertyList.showSemantics li.advanced.semanticsAdvanced .icon:before
 {
     content: '\e900';
 }
@@ -1489,6 +1516,66 @@ body > .control.last .controlFlowArrow,
 .loadingScreen .status
 {
     padding-top: 1em;
+}
+
+.semPropDialog{
+    max-height: 60%;
+    overflow-y: auto;
+}
+.semPropDialog ul
+{
+    font-size: 1.2em;
+    padding-bottom: 1em;
+    list-style-type: square;
+}
+.semPropDialog ul ul
+{
+    list-style-type: disc;
+}
+.semPropDialog ul > li
+{
+    padding-left: 2.0em;
+}
+.semPropDialog .modalButton
+{
+    display: inline-block;
+}
+.semPropDialog .modalContents > div
+{
+    margin-top: 2.0em;
+}
+
+/*************************************************************
+ * AUTOCOMPLETION adapted from                               *
+ * https://www.w3schools.com/howto/howto_js_autocomplete.asp *
+ *************************************************************/
+.autocomplete-items {
+    border: 1px solid #d4d4d4;
+    border-bottom: none;
+    border-top: none;
+    z-index: 99;
+    /*position the autocomplete items to be the same width as the container:*/
+    top: 100%;
+    left: 0;
+    right: 0;
+    /*add a scrollbar if we have too many items*/
+    max-height: 10em;
+    overflow-y: scroll;
+}
+.autocomplete-items div {
+    padding: 10px;
+    cursor: pointer;
+    background-color: #fff;
+    border-bottom: 1px solid #d4d4d4;
+}
+.autocomplete-items div:hover {
+    /*when hovering an item:*/
+    background-color: #e9e9e9;
+}
+.autocomplete-active {
+    /*when navigating through the items using the arrow keys:*/
+    background-color: DodgerBlue !important;
+    color: #ffffff;
 }
 
 /***********

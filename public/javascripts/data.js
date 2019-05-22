@@ -9,6 +9,13 @@ var dataNS = odkmaker.namespace.load('odkmaker.data');
 
 ;(function($)
 {
+    /*Prefixes for semantics*/
+    dataNS.semantics = {
+        ontoReferencePrefix : "_onto_",
+        columnReferencePrefix : "_col_",
+        semPropertyPrefix : "__semantics__"
+    }
+
     // gets just the pure data for any one control
     var getDataRepresentation = odkmaker.data.extractOne = function($control)
     {
@@ -63,6 +70,18 @@ var dataNS = odkmaker.namespace.load('odkmaker.data');
 
     var loadOne = odkmaker.data.loadOne = function(control, $parent)
     {
+        /*If the control has any semantic information attached that is currently not
+        included in the default properties (because it was not yet downloaded from aggregate) 
+        we have to add it to those default properties before doing anything else*/
+        for (const propName in control) {
+            if (control.hasOwnProperty(propName)) {                
+                if(propName.startsWith(dataNS.semantics.semPropertyPrefix)){
+                    var removedPrefix = propName.split(dataNS.semantics.semPropertyPrefix)[1];
+                    odkmaker.control.addSemanticProperty(removedPrefix);                    
+                }                
+            }
+        }
+        
         var properties = null;
         if ((control.type == 'group') || (control.type == 'branch') || (control.type == 'metadata'))
             properties = $.extend(true, {}, $.fn.odkControl.controlProperties[control.type]);
@@ -735,7 +754,8 @@ var dataNS = odkmaker.namespace.load('odkmaker.data');
                 'xmlns': 'http://www.w3.org/2002/xforms',
                 'xmlns:h': 'http://www.w3.org/1999/xhtml',
                 'xmlns:xsd': 'http://www.w3.org/2001/XMLSchema',
-                'xmlns:jr': 'http://openrosa.org/javarosa'
+                'xmlns:jr': 'http://openrosa.org/javarosa',
+                'xmlns:sem': 'http://annotation'
             },
             children: [
                 {   name: 'h:head',
@@ -799,13 +819,67 @@ var dataNS = odkmaker.namespace.load('odkmaker.data');
                 submission.attrs.action = internal.metadata.submission_url;
         }
 
+        
+        //Build the semantics root element
+        var semanticsRoot = {
+            name: 'sem:semanticsModel',
+            children: []
+        };
+        root.children.push(semanticsRoot);
+
         _.each(internal.controls, function(control)
         {
-            parseControl(control, '/data/', instanceHead, translations, model, body);
+            parseControlSemantics(control, semanticsRoot);
+            
+            //Remove the semantics for the serialization so they are not added to the normal XForms-description
+            var controlWithoutSemantics = omitSemanticProperties(control);
+            parseControl(controlWithoutSemantics, '/data/', instanceHead, translations, model, body);
         });
 
         return root;
     };
+
+    var omitSemanticProperties = function(control){
+        var controlWithoutSemantics = _.omit(control, function(value, key, object){
+            return key.startsWith(dataNS.semantics.semPropertyPrefix);
+        });
+        //Deal with nested controls
+        if(control.children){
+            for (let i = 0; i < control.children.length; i++) {
+                const child = control.children[i];
+                control.children[i] = omitSemanticProperties(child);
+            }
+        }
+        return controlWithoutSemantics;
+    }
+
+    var parseControlSemantics = function(control, semanticsRoot){
+        //Create a semantics node for this control element
+        var controlSemanticsNode = {
+            name: "sem:node",
+            attrs: {
+               fieldName: control.name
+            }
+        };
+        semanticsRoot.children.push(controlSemanticsNode);
+        //For each key that contains semantics information add an attribute to the node
+        for(var key in control){
+            if(key.startsWith(dataNS.semantics.semPropertyPrefix)){
+                var value = control[key];
+                var semanticsName = key.split(dataNS.semantics.semPropertyPrefix)[1];
+                if(!(value === undefined || value === null || value.length <= 0) ){
+                    controlSemanticsNode.attrs[semanticsName] = value;
+                }
+            }
+        }
+
+        //Groups might have children which can have semantics that have to be parsed
+        if(control.type == 'group'){
+            _.forEach(control.children, function(child){
+                parseControlSemantics(child, semanticsRoot, true);
+            });
+        }
+    }
 
     // XML serializer
     var generateIndent = function(indentLevel)

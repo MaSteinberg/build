@@ -398,6 +398,48 @@
       </div>
     </div>
 
+    <div class="modal semPropDialog">
+        <h3>Warning</h3>
+        <div class="modalContents">
+            <div class="missingSemPropsContainer">
+              <p>
+                The template-based export on this server uses some semantic properties that your ODK Build is currently not providing.
+                You can select which to add to your surveys. You can also select the export templates 
+                you are interested in and the related properties will be selected for you.
+              </p>
+              <div class="checkboxControl modalButtonContainer">
+                <a class="modalButton checkboxControlSelectAll">Select all</a>
+                <a class="modalButton checkboxControlDeselectAll">Deselect all</a>
+              </div>
+              <div class="propertyCheckboxes">
+              </div>
+              <div class="templateButtons modalButtonContainer">
+              </div>
+              <div class="modalButtonContainer">
+                <a class="modalButton addSemPropsButton">Add selected</a>
+              </div>
+            </div>
+            <div class="missingRequirementsContainer">
+                <p>
+                    The following information is <b>required</b> by one or more templates and is currently missing:
+                </p>
+                <ul class="missingRequirementsList">
+                </ul>
+            </div>
+            <div class="missingOptionalsContainer">
+                <p>
+                    The following information is <b>optional</b> for one or more templates and is currently missing:
+                </p>
+                <ul class="missingOptionalsList">
+                </ul>
+            </div>
+            <div class="modalButtonContainer">
+              <a class="modalButton resumeUploadButton">Upload anyway</a>
+              <a class="modalButton cancelUploadButton jqmClose" href="#close">Cancel upload</a>
+            </div>
+        </div>
+    </div>
+
     <div class="modal narrowModal titlelessModal askDialog">
       <div class="modalContents">
         <p></p>
