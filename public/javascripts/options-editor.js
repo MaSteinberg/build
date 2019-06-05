@@ -2,6 +2,8 @@
  *  options-editor.js - keeping everyone's options open
  *    You know, just in case. Editor and manager for select
  *    one/many lists and presets.
+ * 
+ *  Modified by Markus Steinberg as part of his Master's thesis
  */
 
 var optionsNS = odkmaker.namespace.load('odkmaker.options');

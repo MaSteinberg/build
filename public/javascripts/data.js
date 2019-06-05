@@ -3,6 +3,7 @@
  *    Pulls out a properly structured, hierarchical tree
  *    of the control data of the form, and then massages
  *    it through a few steps to become XML output.
+ *  Modified by Markus Steinberg as part of his Master's thesis
  */
 
 var dataNS = odkmaker.namespace.load('odkmaker.data');

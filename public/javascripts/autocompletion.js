@@ -1,3 +1,4 @@
+//Author: Markus Steinberg
 ;(function($){
     var autoNS = odkmaker.namespace.load('odkmaker.autocompletion');
     autoNS.cache = {};

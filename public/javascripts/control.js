@@ -3,6 +3,7 @@
  *    Represents a control in the actual XForm. It only manages and stores data
  *    about its internal structure and properties - the general form structure
  *    is managed by the DOM.
+ *  Modified by Markus Steinberg as part of his Master's thesis
  */
 
 // <output value="xpath"/> for substitution inside question text

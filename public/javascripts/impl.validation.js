@@ -68,6 +68,8 @@
  *    The message is the displayed error if the validation finds a problem. Right
  *    now it only takes static strings; eventually it may take a function to
  *    generate a string.
+ *  
+ * Modified by Markus Steinberg as part of his Master's thesis: Length-constraint of input-fields changed to 255
  */
 
 ;(function()

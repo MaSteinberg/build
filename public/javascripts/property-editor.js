@@ -4,6 +4,8 @@
  *    are automatically saved back to their parent control.
  *    Property Types: text, uiText, bool, numericRange, enum,
  *                    dateRange, optionsEditor
+ * 
+ *  Modified by Markus Steinberg as part of his Master's thesis
  */
 
 ;(function($)
